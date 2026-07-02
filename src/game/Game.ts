@@ -3,17 +3,21 @@ import {
   BASE_SPAWN_INTERVAL_MS,
   BEST_SCORE_STORAGE_KEY,
   LANE_COUNT,
+  MAX_MUSCLE_LEVEL,
   MIN_SPAWN_INTERVAL_MS,
   OBSTACLE_SIZE,
   OBSTACLE_SPEED_GROWTH,
   PLAYER_RADIUS,
   PLAYER_Y_RATIO,
+  PROTEIN_SCORE,
+  PROTEIN_SPAWN_CHANCE,
   SCORE_PER_SECOND,
   SPAWN_INTERVAL_DECAY_PER_SEC,
 } from './config'
 import type { GameStatus } from './GameState'
 import { Obstacle } from './Obstacle'
 import { Player } from './Player'
+import { RockBgm } from './RockBgm'
 import { attachInput } from './input'
 
 export class Game {
@@ -28,6 +32,7 @@ export class Game {
 
   private player: Player
   private obstacles: Obstacle[] = []
+  private bgm = new RockBgm()
 
   private score = 0
   private bestScore = 0
@@ -47,7 +52,11 @@ export class Game {
     this.resize()
     window.addEventListener('resize', () => this.resize())
     window.addEventListener('orientationchange', () => this.resize())
-    attachInput(this.canvas, (x) => this.handleTap(x))
+    attachInput(
+      this.canvas,
+      () => this.handleStart(),
+      (direction) => this.handleMove(direction),
+    )
     requestAnimationFrame(this.loop)
   }
 
@@ -67,18 +76,18 @@ export class Game {
     this.player.displayX = this.laneXPositions[this.player.lane]
   }
 
-  private handleTap(clientX: number): void {
+  private handleStart(): void {
     if (this.status !== 'playing') {
       this.reset()
       this.status = 'playing'
-      return
+      this.bgm.start()
+      this.bgm.setDimmed(false)
     }
-    const half = this.width / 2
-    if (clientX < half) {
-      this.player.moveTo(Math.max(0, this.player.lane - 1))
-    } else {
-      this.player.moveTo(Math.min(LANE_COUNT - 1, this.player.lane + 1))
-    }
+  }
+
+  private handleMove(direction: -1 | 1): void {
+    if (this.status !== 'playing') return
+    this.player.moveTo(Math.max(0, Math.min(LANE_COUNT - 1, this.player.lane + direction)))
   }
 
   private reset(): void {
@@ -88,6 +97,7 @@ export class Game {
     this.spawnTimer = BASE_SPAWN_INTERVAL_MS
     this.player.lane = Math.floor(LANE_COUNT / 2)
     this.player.displayX = this.laneXPositions[this.player.lane]
+    this.player.muscleLevel = 0
   }
 
   private loop = (ts: number): void => {
@@ -121,19 +131,26 @@ export class Game {
     this.obstacles = this.obstacles.filter((o) => !o.isOffscreen(this.height))
 
     this.checkCollisions()
+    this.obstacles = this.obstacles.filter((o) => !o.isOffscreen(this.height))
   }
 
   private spawnObstacle(): void {
     const lanes = Array.from({ length: LANE_COUNT }, (_, i) => i)
-    // Always leave at least one lane open so the game stays dodgeable.
     const openCount = 1 + Math.floor(Math.random() * (LANE_COUNT - 1))
     for (let i = lanes.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1))
       ;[lanes[i], lanes[j]] = [lanes[j], lanes[i]]
     }
+    // Always leave at least one lane without additives so the wave stays dodgeable.
     const filledLanes = lanes.slice(0, LANE_COUNT - openCount)
     for (const lane of filledLanes) {
-      this.obstacles.push(new Obstacle(lane, -OBSTACLE_SIZE))
+      this.obstacles.push(new Obstacle(lane, -OBSTACLE_SIZE, 'additive'))
+    }
+
+    if (Math.random() < PROTEIN_SPAWN_CHANCE) {
+      const safeLanes = lanes.slice(LANE_COUNT - openCount)
+      const lane = safeLanes[Math.floor(Math.random() * safeLanes.length)]
+      this.obstacles.push(new Obstacle(lane, -OBSTACLE_SIZE * 1.8, 'protein'))
     }
   }
 
@@ -142,6 +159,12 @@ export class Game {
     for (const obstacle of this.obstacles) {
       if (obstacle.lane !== this.player.lane) continue
       if (Math.abs(obstacle.y - this.playerY) < hitRange) {
+        if (obstacle.kind === 'protein') {
+          obstacle.collected = true
+          this.score += PROTEIN_SCORE
+          this.player.muscleLevel = Math.min(MAX_MUSCLE_LEVEL, this.player.muscleLevel + 1)
+          continue
+        }
         this.gameOver()
         return
       }
@@ -150,6 +173,7 @@ export class Game {
 
   private gameOver(): void {
     this.status = 'gameover'
+    this.bgm.setDimmed(true)
     const finalScore = Math.floor(this.score)
     if (finalScore > this.bestScore) {
       this.bestScore = finalScore
@@ -161,10 +185,10 @@ export class Game {
     const ctx = this.ctx
     ctx.clearRect(0, 0, this.width, this.height)
 
-    ctx.fillStyle = '#0f172a'
+    ctx.fillStyle = '#111827'
     ctx.fillRect(0, 0, this.width, this.height)
 
-    ctx.strokeStyle = 'rgba(148, 163, 184, 0.25)'
+    ctx.strokeStyle = 'rgba(250, 204, 21, 0.22)'
     ctx.lineWidth = 2
     for (const x of this.laneXPositions) {
       ctx.beginPath()
@@ -183,13 +207,14 @@ export class Game {
     ctx.fillText(`SCORE ${Math.floor(this.score)}`, 16, 16)
     ctx.font = '16px sans-serif'
     ctx.fillText(`BEST ${this.bestScore}`, 16, 52)
+    ctx.fillText(`MUSCLE ${this.player.muscleLevel}/${MAX_MUSCLE_LEVEL}`, 16, 76)
 
     if (this.status === 'ready') {
-      this.drawOverlay('ひらり', 'TAP TO START')
+      this.drawOverlay('マッスルひらり', '横スワイプで添加物をかわしてタンパク質を取れ')
     } else if (this.status === 'gameover') {
       this.drawOverlay(
         'GAME OVER',
-        `SCORE ${Math.floor(this.score)}  BEST ${this.bestScore}\nTAP TO RESTART`,
+        `SCORE ${Math.floor(this.score)}  BEST ${this.bestScore}\n横スワイプでリスタート`,
       )
     }
   }
@@ -202,10 +227,10 @@ export class Game {
     ctx.fillStyle = '#f8fafc'
     ctx.textAlign = 'center'
     ctx.textBaseline = 'middle'
-    ctx.font = 'bold 48px sans-serif'
+    ctx.font = 'bold 42px sans-serif'
     ctx.fillText(title, this.width / 2, this.height / 2 - 24)
 
-    ctx.font = '20px sans-serif'
+    ctx.font = '18px sans-serif'
     const lines = subtitle.split('\n')
     lines.forEach((line, i) => {
       ctx.fillText(line, this.width / 2, this.height / 2 + 24 + i * 28)
