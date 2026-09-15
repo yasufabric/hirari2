@@ -1,3 +1,16 @@
+:root {
+  --whey: #e8dcc8;
+  --whey-deep: #C4AE8C;
+  --iron: #3b2416;
+  --iron-soft: #5c3a28;
+  --warning: #f5c518;
+  --can: #1f6f4a;
+  --blood: #c23b22;
+  --paper: #f4ead8;
+  --display: 'Dela Gothic One', 'Hiragino Mincho ProN', serif;
+  --body: 'Zen Kaku Gothic New', 'Hiragino Sans', sans-serif;
+}
+
 html,
 body {
   margin: 0;
@@ -6,13 +19,167 @@ body {
   overflow: hidden;
   overscroll-behavior: none;
   touch-action: none;
-  background: #0f172a;
+  background: var(--iron);
+  color: var(--iron);
+  font-family: var(--body);
   -webkit-user-select: none;
   user-select: none;
 }
 
-#game {
-  display: block;
+#stage {
+  position: relative;
   width: 100vw;
   height: 100vh;
+}
+
+#game {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+#hud {
+  position: absolute;
+  inset: 0 0 auto 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: max(12px, env(safe-area-inset-top)) 16px 0;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.muscle {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 42%;
+}
+
+.muscle-label {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--iron);
+}
+
+.muscle-track {
+  height: 10px;
+  border: 2px solid var(--iron);
+  background: rgba(244, 234, 216, 0.55);
+  overflow: hidden;
+}
+
+#muscle-fill {
+  height: 100%;
+  width: 0%;
+  background: var(--can);
+  transform-origin: left center;
+  transition: width 160ms ease-out;
+}
+
+.scores {
+  text-align: right;
+  color: var(--iron);
+}
+
+#score {
+  display: block;
+  font-family: var(--display);
+  font-size: 28px;
+  line-height: 1;
+}
+
+#best-wrap {
+  display: block;
+  margin-top: 4px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+#hint {
+  position: absolute;
+  left: 50%;
+  bottom: 48%;
+  transform: translateX(-50%);
+  margin: 0;
+  padding: 8px 16px;
+  border: 3px solid var(--iron);
+  background: var(--warning);
+  text-align: center;
+  font-family: var(--display);
+  font-size: 18px;
+  color: var(--iron);
+  pointer-events: none;
+  z-index: 5;
+  white-space: nowrap;
+}
+
+#ready,
+#over {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 24px;
+  background: color-mix(in srgb, var(--whey) 78%, transparent);
+  text-align: center;
+  z-index: 3;
+}
+
+#ready[hidden],
+#over[hidden],
+#hud[hidden],
+#hint[hidden] {
+  display: none;
+}
+
+.kicker {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--iron-soft);
+}
+
+h1 {
+  margin: 0;
+  font-family: var(--display);
+  font-size: clamp(36px, 10vw, 56px);
+  font-weight: 400;
+  line-height: 1.15;
+}
+
+.lede,
+#over-score {
+  margin: 0;
+  max-width: 22rem;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.6;
+}
+
+button {
+  margin-top: 8px;
+  min-width: 12rem;
+  min-height: 52px;
+  border: 3px solid var(--iron);
+  background: var(--warning);
+  color: var(--iron);
+  font-family: var(--display);
+  font-size: 22px;
+  cursor: pointer;
+}
+
+button:focus-visible {
+  outline: 3px solid var(--can);
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #muscle-fill {
+    transition: none;
+  }
 }

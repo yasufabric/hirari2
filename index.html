@@ -6,15 +6,47 @@
       name="viewport"
       content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover"
     />
-    <meta name="theme-color" content="#0f172a" />
+    <meta name="theme-color" content="#3B2416" />
     <link rel="manifest" href="%BASE_URL%manifest.json" />
     <link rel="apple-touch-icon" href="%BASE_URL%icon.svg" />
     <link rel="icon" href="%BASE_URL%icon.svg" type="image/svg+xml" />
     <title>マッスルひらり</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=Zen+Kaku+Gothic+New:wght@500;700&display=swap"
+      rel="stylesheet"
+    />
     <link rel="stylesheet" href="/src/style.css" />
   </head>
   <body>
-    <canvas id="game"></canvas>
+    <div id="stage">
+      <canvas id="game"></canvas>
+      <div id="hud" hidden>
+        <div class="muscle">
+          <span class="muscle-label">ムキムキ</span>
+          <div class="muscle-track" aria-hidden="true">
+            <div id="muscle-fill"></div>
+          </div>
+        </div>
+        <div class="scores">
+          <span id="score">0</span>
+          <span id="best-wrap">いちばん <span id="best">0</span></span>
+        </div>
+      </div>
+      <p id="hint" hidden>← スワイプ →</p>
+      <section id="ready">
+        <p class="kicker">夜のプロテイン棚</p>
+        <h1>マッスルひらり</h1>
+        <p class="lede">黄色いダイヤは添加物。缶はプロテイン。横にスワイプしてかわす。</p>
+        <button type="button" id="start">はじめる</button>
+      </section>
+      <section id="over" hidden>
+        <h1>やられた</h1>
+        <p id="over-score"></p>
+        <button type="button" id="restart">もういちど</button>
+      </section>
+    </div>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

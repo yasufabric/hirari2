@@ -1,3 +1,4 @@
+import { BODY, BODY_LIGHT, IRON } from './palette'
 import { MAX_MUSCLE_LEVEL, PLAYER_EASE, PLAYER_RADIUS } from './config'
 
 export class Player {
@@ -20,63 +21,84 @@ export class Player {
     this.displayX += (targetX - this.displayX) * t
   }
 
-  draw(ctx: CanvasRenderingContext2D, y: number): void {
-    const power = this.muscleLevel / MAX_MUSCLE_LEVEL
-    const shoulder = PLAYER_RADIUS + 18 + power * 22
-    const arm = 10 + power * 10
-    const chest = 22 + power * 13
-    const head = 12
-    const x = this.displayX
+  draw(
+    ctx: CanvasRenderingContext2D,
+    y: number,
+    alpha = 1,
+    atX = this.displayX,
+    muscle = this.muscleLevel,
+    laneHalfPx: number,
+  ): void {
+    const power = muscle / MAX_MUSCLE_LEVEL
+    const shoulder = PLAYER_RADIUS + 20 + power * 28
+    const arm = 12 + power * 14
+    const chest = 24 + power * 18
+    const head = 13
+    const x = atX
+    const lineWidth = 9 + power * 7
+    const reach = shoulder + arm + lineWidth / 2
+    const s = Math.min(1, (laneHalfPx - 2) / reach)
 
     ctx.save()
     ctx.translate(x, y)
+    ctx.scale(s, s)
+    ctx.globalAlpha *= alpha
 
-    ctx.strokeStyle = '#78350f'
+    ctx.strokeStyle = IRON
     ctx.lineCap = 'round'
     ctx.lineJoin = 'round'
-    ctx.lineWidth = 7 + power * 5
+    ctx.lineWidth = lineWidth
 
     ctx.beginPath()
-    ctx.moveTo(-shoulder, -14)
-    ctx.quadraticCurveTo(-shoulder - arm, -6, -shoulder + 4, 10)
-    ctx.moveTo(shoulder, -14)
-    ctx.quadraticCurveTo(shoulder + arm, -6, shoulder - 4, 10)
+    ctx.moveTo(-shoulder, -16)
+    ctx.quadraticCurveTo(-shoulder - arm, -4, -shoulder + 2, 14)
+    ctx.moveTo(shoulder, -16)
+    ctx.quadraticCurveTo(shoulder + arm, -4, shoulder - 2, 14)
     ctx.stroke()
 
-    ctx.fillStyle = '#f59e0b'
+    ctx.fillStyle = BODY
     ctx.beginPath()
-    ctx.ellipse(0, 0, chest + 6, PLAYER_RADIUS + 8 + power * 6, 0, 0, Math.PI * 2)
+    ctx.ellipse(0, 2, chest + 8, PLAYER_RADIUS + 10 + power * 8, 0, 0, Math.PI * 2)
     ctx.fill()
-
-    ctx.fillStyle = '#fde68a'
-    ctx.beginPath()
-    ctx.ellipse(-10, -1, 10 + power * 5, 18 + power * 4, -0.25, 0, Math.PI * 2)
-    ctx.ellipse(10, -1, 10 + power * 5, 18 + power * 4, 0.25, 0, Math.PI * 2)
-    ctx.fill()
-
-    ctx.fillStyle = '#fbbf24'
-    ctx.beginPath()
-    ctx.arc(0, -PLAYER_RADIUS - 16, head, 0, Math.PI * 2)
-    ctx.fill()
-
-    ctx.strokeStyle = '#111827'
-    ctx.lineWidth = 2
-    ctx.beginPath()
-    ctx.moveTo(-5, -PLAYER_RADIUS - 17)
-    ctx.lineTo(-1, -PLAYER_RADIUS - 17)
-    ctx.moveTo(5, -PLAYER_RADIUS - 17)
-    ctx.lineTo(1, -PLAYER_RADIUS - 17)
-    ctx.moveTo(-5, -PLAYER_RADIUS - 10)
-    ctx.quadraticCurveTo(0, -PLAYER_RADIUS - 6, 5, -PLAYER_RADIUS - 10)
+    ctx.strokeStyle = IRON
+    ctx.lineWidth = 4
     ctx.stroke()
 
-    ctx.strokeStyle = '#78350f'
-    ctx.lineWidth = 7 + power * 4
+    ctx.fillStyle = BODY_LIGHT
     ctx.beginPath()
-    ctx.moveTo(-12, PLAYER_RADIUS + 2)
-    ctx.lineTo(-18, PLAYER_RADIUS + 22)
-    ctx.moveTo(12, PLAYER_RADIUS + 2)
-    ctx.lineTo(18, PLAYER_RADIUS + 22)
+    ctx.ellipse(-12, 2, 11 + power * 7, 20 + power * 6, -0.22, 0, Math.PI * 2)
+    ctx.ellipse(12, 2, 11 + power * 7, 20 + power * 6, 0.22, 0, Math.PI * 2)
+    ctx.fill()
+
+    ctx.fillStyle = BODY_LIGHT
+    ctx.beginPath()
+    ctx.arc(0, -PLAYER_RADIUS - 18, head, 0, Math.PI * 2)
+    ctx.fill()
+    ctx.strokeStyle = IRON
+    ctx.lineWidth = 3
+    ctx.stroke()
+
+    ctx.fillStyle = IRON
+    ctx.beginPath()
+    ctx.arc(-4, -PLAYER_RADIUS - 19, 1.4, 0, Math.PI * 2)
+    ctx.fill()
+    ctx.beginPath()
+    ctx.arc(4, -PLAYER_RADIUS - 19, 1.4, 0, Math.PI * 2)
+    ctx.fill()
+    ctx.strokeStyle = IRON
+    ctx.lineWidth = 2.5
+    ctx.beginPath()
+    ctx.moveTo(-4, -PLAYER_RADIUS - 11)
+    ctx.quadraticCurveTo(0, -PLAYER_RADIUS - 8, 4, -PLAYER_RADIUS - 11)
+    ctx.stroke()
+
+    ctx.strokeStyle = IRON
+    ctx.lineWidth = 9 + power * 5
+    ctx.beginPath()
+    ctx.moveTo(-14, PLAYER_RADIUS + 4)
+    ctx.lineTo(-20, PLAYER_RADIUS + 26)
+    ctx.moveTo(14, PLAYER_RADIUS + 4)
+    ctx.lineTo(20, PLAYER_RADIUS + 26)
     ctx.stroke()
 
     ctx.restore()

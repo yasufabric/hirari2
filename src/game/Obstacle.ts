@@ -1,3 +1,4 @@
+import { CAN, CAN_LID, IRON, WARNING } from './palette'
 import { OBSTACLE_SIZE, PROTEIN_SIZE } from './config'
 
 export type FallingItemKind = 'additive' | 'protein'
@@ -36,37 +37,52 @@ export class Obstacle {
 
   private drawAdditive(ctx: CanvasRenderingContext2D, x: number, half: number): void {
     const y = this.y
-    ctx.fillStyle = '#f97316'
-    ctx.fillRect(x - half, y - half, this.size, this.size)
-    ctx.strokeStyle = '#7f1d1d'
+    ctx.save()
+    ctx.translate(x, y)
+    ctx.beginPath()
+    ctx.moveTo(0, -half - 4)
+    ctx.lineTo(half + 2, 0)
+    ctx.lineTo(0, half + 4)
+    ctx.lineTo(-half - 2, 0)
+    ctx.closePath()
+    ctx.fillStyle = WARNING
+    ctx.fill()
+    ctx.strokeStyle = IRON
     ctx.lineWidth = 3
-    ctx.strokeRect(x - half, y - half, this.size, this.size)
+    ctx.stroke()
 
-    ctx.fillStyle = '#fff7ed'
-    ctx.font = 'bold 12px sans-serif'
-    ctx.textAlign = 'center'
-    ctx.textBaseline = 'middle'
-    ctx.fillText('E', x, y - 5)
-    ctx.fillText('xxx', x, y + 8)
+    ctx.beginPath()
+    ctx.moveTo(0, -half + 6)
+    ctx.lineTo(half - 8, 0)
+    ctx.lineTo(0, half - 6)
+    ctx.lineTo(-half + 8, 0)
+    ctx.closePath()
+    ctx.fillStyle = IRON
+    ctx.fill()
+    ctx.restore()
   }
 
   private drawProtein(ctx: CanvasRenderingContext2D, x: number, half: number): void {
     const y = this.y
-    ctx.fillStyle = '#f8fafc'
-    ctx.beginPath()
-    ctx.roundRect(x - half, y - half, this.size, this.size, 7)
-    ctx.fill()
+    const w = this.size
+    const h = this.size + 8
+    ctx.save()
+    ctx.translate(x, y)
 
-    ctx.fillStyle = '#22c55e'
-    ctx.fillRect(x - half + 4, y - 4, this.size - 8, 12)
-    ctx.strokeStyle = '#14532d'
+    ctx.fillStyle = CAN
+    ctx.beginPath()
+    ctx.roundRect(-w / 2, -h / 2, w, h, 5)
+    ctx.fill()
+    ctx.strokeStyle = IRON
     ctx.lineWidth = 3
     ctx.stroke()
 
-    ctx.fillStyle = '#14532d'
-    ctx.font = 'bold 13px sans-serif'
-    ctx.textAlign = 'center'
-    ctx.textBaseline = 'middle'
-    ctx.fillText('P', x, y + 2)
+    ctx.fillStyle = CAN_LID
+    ctx.fillRect(-w / 2 + 3, -h / 2 + 3, w - 6, 7)
+
+    ctx.fillStyle = WARNING
+    ctx.fillRect(-w / 2 + 4, -2, w - 8, 8)
+
+    ctx.restore()
   }
 }

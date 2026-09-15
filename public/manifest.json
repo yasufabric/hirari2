@@ -3,8 +3,8 @@
   "short_name": "筋ひらり",
   "start_url": ".",
   "display": "standalone",
-  "background_color": "#0f172a",
-  "theme_color": "#0f172a",
+  "background_color": "#E8DCC8",
+  "theme_color": "#3B2416",
   "icons": [
     {
       "src": "icon.svg",
