@@ -73,11 +73,16 @@ export class Player {
     ctx.lineWidth = 3
     ctx.stroke()
 
+    ctx.fillStyle = IRON
+    ctx.beginPath()
+    ctx.arc(-4, -PLAYER_RADIUS - 19, 1.4, 0, Math.PI * 2)
+    ctx.fill()
+    ctx.beginPath()
+    ctx.arc(4, -PLAYER_RADIUS - 19, 1.4, 0, Math.PI * 2)
+    ctx.fill()
     ctx.strokeStyle = IRON
     ctx.lineWidth = 2.5
     ctx.beginPath()
-    ctx.arc(-4, -PLAYER_RADIUS - 19, 1.4, 0, Math.PI * 2)
-    ctx.arc(4, -PLAYER_RADIUS - 19, 1.4, 0, Math.PI * 2)
     ctx.moveTo(-4, -PLAYER_RADIUS - 11)
     ctx.quadraticCurveTo(0, -PLAYER_RADIUS - 8, 4, -PLAYER_RADIUS - 11)
     ctx.stroke()

@@ -290,9 +290,13 @@ export class Game {
 
   private render(): void {
     const ctx = this.ctx
-    const shakeAmt = this.shake * 7
-    const ox = this.reduceMotion ? 0 : (Math.random() * 2 - 1) * shakeAmt
-    const oy = this.reduceMotion ? 0 : (Math.random() * 2 - 1) * shakeAmt
+    let ox = 0
+    let oy = 0
+    if (!this.reduceMotion && this.shake > 0) {
+      const shakeAmt = this.shake * 7
+      ox = (Math.random() * 2 - 1) * shakeAmt
+      oy = (Math.random() * 2 - 1) * shakeAmt
+    }
 
     ctx.save()
     ctx.setTransform(this.dpr, 0, 0, this.dpr, ox * this.dpr, oy * this.dpr)
