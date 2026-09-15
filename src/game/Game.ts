@@ -38,7 +38,7 @@ type Ghost = { x: number; y: number; muscle: number; life: number }
 type Pop = { x: number; y: number; life: number }
 
 const HITSTOP_SEC = 10 / 60
-const HINT_SEC = 2
+const HINT_SEC = 2.8
 const GHOST_LIFE = 0.18
 const POP_LIFE = 0.32
 const MAT_FLASH_SEC = 0.22
@@ -70,7 +70,6 @@ export class Game {
   private matFlashLane = -1
   private matFlash = 0
   private hintLeft = 0
-  private shownHint = false
   private reduceMotion = false
 
   private ghosts: Ghost[] = []
@@ -108,10 +107,7 @@ export class Game {
     this.hitstop = 0
     this.flash = 0
     this.shake = 0
-    if (!this.shownHint) {
-      this.hintLeft = HINT_SEC
-      this.shownHint = true
-    }
+    this.hintLeft = HINT_SEC
     this.bgm.start()
     this.bgm.setDimmed(false)
     this.syncChrome()
@@ -146,6 +142,7 @@ export class Game {
     this.player.moveTo(next)
     this.matFlashLane = next
     this.matFlash = MAT_FLASH_SEC
+    this.hintLeft = 0
   }
 
   private reset(): void {
@@ -167,6 +164,7 @@ export class Game {
     this.lastTs = ts
     this.update(dt)
     this.render()
+    this.syncChrome()
     requestAnimationFrame(this.loop)
   }
 
@@ -206,7 +204,6 @@ export class Game {
 
     this.checkCollisions()
     this.obstacles = this.obstacles.filter((o) => !o.isOffscreen(this.height))
-    this.syncChrome()
   }
 
   private decayFx(dt: number): void {
