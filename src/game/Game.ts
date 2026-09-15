@@ -309,6 +309,18 @@ export class Game {
     ctx.fillStyle = sky
     ctx.fillRect(0, 0, this.width, this.height)
 
+    ctx.strokeStyle = IRON
+    ctx.globalAlpha = 0.14
+    ctx.lineWidth = 2
+    for (let i = 0; i < this.laneXPositions.length; i++) {
+      const x = this.laneXPositions[i]
+      ctx.beginPath()
+      ctx.moveTo(x, 0)
+      ctx.lineTo(x, this.height)
+      ctx.stroke()
+    }
+    ctx.globalAlpha = 1
+
     ctx.fillStyle = IRON
     ctx.globalAlpha = 0.12
     ctx.fillRect(0, 0, this.width, 28)
@@ -318,11 +330,12 @@ export class Game {
 
     for (const obstacle of this.obstacles) obstacle.draw(ctx, this.laneXPositions)
 
+    const laneHalfPx = this.matWidth() / 2
     for (const ghost of this.ghosts) {
-      this.player.draw(ctx, ghost.y, ghost.life / GHOST_LIFE, ghost.x, ghost.muscle)
+      this.player.draw(ctx, ghost.y, ghost.life / GHOST_LIFE, ghost.x, ghost.muscle, laneHalfPx)
     }
 
-    this.player.draw(ctx, this.playerY)
+    this.player.draw(ctx, this.playerY, 1, this.player.displayX, this.player.muscleLevel, laneHalfPx)
     this.drawPops(ctx)
 
     if (this.flash > 0) {

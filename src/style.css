@@ -1,6 +1,6 @@
 :root {
   --whey: #e8dcc8;
-  --whey-deep: #cbb99a;
+  --whey-deep: #C4AE8C;
   --iron: #3b2416;
   --iron-soft: #5c3a28;
   --warning: #f5c518;
@@ -100,7 +100,7 @@ body {
 #hint {
   position: absolute;
   left: 50%;
-  bottom: 22%;
+  bottom: 48%;
   transform: translateX(-50%);
   margin: 0;
   padding: 8px 16px;
