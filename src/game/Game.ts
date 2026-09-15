@@ -110,6 +110,7 @@ export class Game {
     this.hintLeft = HINT_SEC
     this.bgm.start()
     this.bgm.setDimmed(false)
+    this.chrome.hint.hidden = false
     this.syncChrome()
   }
 
@@ -143,6 +144,7 @@ export class Game {
     this.matFlashLane = next
     this.matFlash = MAT_FLASH_SEC
     this.hintLeft = 0
+    this.chrome.hint.hidden = true
   }
 
   private reset(): void {
@@ -185,7 +187,10 @@ export class Game {
 
     this.elapsed += dt
     this.score += dt * SCORE_PER_SECOND
-    if (this.hintLeft > 0) this.hintLeft -= dt
+    if (this.hintLeft > 0) {
+      this.hintLeft -= dt
+      if (this.hintLeft <= 0) this.chrome.hint.hidden = true
+    }
 
     const speed = BASE_OBSTACLE_SPEED + this.elapsed * OBSTACLE_SPEED_GROWTH
 
@@ -264,6 +269,7 @@ export class Game {
     this.hitstop = this.reduceMotion ? 0 : HITSTOP_SEC
     this.flash = this.reduceMotion ? 0.35 : 1
     this.shake = this.reduceMotion ? 0 : 1
+    this.chrome.hint.hidden = true
     this.bgm.setDimmed(true)
     navigator.vibrate?.(40)
     const finalScore = Math.floor(this.score)
@@ -364,11 +370,9 @@ export class Game {
   }
 
   private syncChrome(): void {
-    const playing = this.status === 'playing' && !this.stunned
     this.chrome.ready.hidden = this.status !== 'ready'
     this.chrome.over.hidden = this.status !== 'gameover'
     this.chrome.hud.hidden = this.status !== 'playing' && !this.stunned
-    this.chrome.hint.hidden = !(playing && this.hintLeft > 0)
     this.chrome.score.textContent = String(Math.floor(this.score))
     this.chrome.best.textContent = String(this.bestScore)
     this.chrome.muscleFill.style.width = `${(this.player.muscleLevel / MAX_MUSCLE_LEVEL) * 100}%`

@@ -99,17 +99,20 @@ body {
 
 #hint {
   position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 18%;
+  left: 50%;
+  bottom: 22%;
+  transform: translateX(-50%);
   margin: 0;
+  padding: 8px 16px;
+  border: 3px solid var(--iron);
+  background: var(--warning);
   text-align: center;
   font-family: var(--display);
-  font-size: 20px;
+  font-size: 18px;
   color: var(--iron);
   pointer-events: none;
   z-index: 5;
-  text-shadow: 0 1px 0 var(--paper);
+  white-space: nowrap;
 }
 
 #ready,
