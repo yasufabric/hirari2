@@ -1,8 +1,7 @@
 import { SWIPE_THRESHOLD_PX } from './config'
 
-export function attachInput(
+export function attachSwipe(
   canvas: HTMLCanvasElement,
-  onStart: () => void,
   onMove: (direction: -1 | 1) => void,
 ): void {
   let pointerId: number | null = null
@@ -18,7 +17,6 @@ export function attachInput(
       startX = e.clientX
       startY = e.clientY
       lastMoveX = e.clientX
-      onStart()
       canvas.setPointerCapture(e.pointerId)
     },
     { passive: false },
