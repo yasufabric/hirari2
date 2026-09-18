@@ -53,3 +53,32 @@ export function attachSwipe(
     pointerId = null
   })
 }
+
+export function attachKeyboard(
+  onMove: (direction: -1 | 1) => void,
+  onConfirm: () => void,
+): void {
+  window.addEventListener('keydown', (e) => {
+    if (e.repeat) return
+    switch (e.code) {
+      case 'ArrowLeft':
+      case 'KeyA':
+        e.preventDefault()
+        onMove(-1)
+        return
+      case 'ArrowRight':
+      case 'KeyD':
+        e.preventDefault()
+        onMove(1)
+        return
+      case 'Space':
+      case 'Enter':
+        if (e.target instanceof HTMLButtonElement) return
+        e.preventDefault()
+        onConfirm()
+        return
+      default:
+        return
+    }
+  })
+}

@@ -15,9 +15,13 @@ const chrome: GameChrome = {
   restart: must<HTMLButtonElement>('restart'),
   score: must('score'),
   best: must('best'),
+  combo: must('combo'),
   muscleFill: must('muscle-fill'),
   overScore: must('over-score'),
+  overRank: must('over-rank'),
+  overHirari: must('over-hirari'),
   hint: must('hint'),
+  mute: must<HTMLButtonElement>('mute'),
 }
 
 new Game(canvas, chrome).init()

@@ -28,6 +28,8 @@ export class Player {
     atX = this.displayX,
     muscle = this.muscleLevel,
     laneHalfPx: number,
+    bounce = 0,
+    flex = 0,
   ): void {
     const power = muscle / MAX_MUSCLE_LEVEL
     const shoulder = PLAYER_RADIUS + 20 + power * 28
@@ -38,10 +40,12 @@ export class Player {
     const lineWidth = 9 + power * 7
     const reach = shoulder + arm + lineWidth / 2
     const s = Math.min(1, (laneHalfPx - 2) / reach)
+    const stretch = 1 + flex * 0.1
+    const squash = 1 - flex * 0.05
 
     ctx.save()
-    ctx.translate(x, y)
-    ctx.scale(s, s)
+    ctx.translate(x, y + bounce)
+    ctx.scale(s * stretch, s * squash)
     ctx.globalAlpha *= alpha
 
     ctx.strokeStyle = IRON

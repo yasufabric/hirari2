@@ -90,6 +90,18 @@ body {
   line-height: 1;
 }
 
+#combo {
+  display: block;
+  margin-top: 4px;
+  font-family: var(--display);
+  font-size: 14px;
+  color: var(--can);
+}
+
+#combo[hidden] {
+  display: none;
+}
+
 #best-wrap {
   display: block;
   margin-top: 4px;
@@ -176,6 +188,22 @@ button {
 button:focus-visible {
   outline: 3px solid var(--can);
   outline-offset: 3px;
+}
+
+#mute {
+  position: absolute;
+  right: max(12px, env(safe-area-inset-right));
+  bottom: max(12px, env(safe-area-inset-bottom));
+  z-index: 6;
+  margin: 0;
+  min-width: 0;
+  min-height: 44px;
+  padding: 8px 14px;
+  font-size: 16px;
+}
+
+#mute[aria-pressed='true'] {
+  background: var(--paper);
 }
 
 @media (prefers-reduced-motion: reduce) {

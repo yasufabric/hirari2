@@ -31,6 +31,7 @@
         </div>
         <div class="scores">
           <span id="score">0</span>
+          <span id="combo" hidden></span>
           <span id="best-wrap">いちばん <span id="best">0</span></span>
         </div>
       </div>
@@ -38,14 +39,17 @@
       <section id="ready">
         <p class="kicker">夜のプロテイン棚</p>
         <h1>マッスルひらり</h1>
-        <p class="lede">黄色いダイヤは添加物。缶はプロテイン。横にスワイプしてかわす。</p>
+        <p class="lede">黄色いダイヤは添加物。缶はプロテイン。隣をかわすとひらり。ムキムキほど高得点。</p>
         <button type="button" id="start">はじめる</button>
       </section>
       <section id="over" hidden>
+        <p class="kicker" id="over-rank"></p>
         <h1>やられた</h1>
         <p id="over-score"></p>
+        <p id="over-hirari" class="lede"></p>
         <button type="button" id="restart">もういちど</button>
       </section>
+      <button type="button" id="mute" aria-pressed="false" aria-label="音を消す">おと</button>
     </div>
     <script type="module" src="/src/main.ts"></script>
   </body>
