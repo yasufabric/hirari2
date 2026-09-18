@@ -112,7 +112,8 @@ body {
 #hint {
   position: absolute;
   left: 50%;
-  bottom: calc(108px + env(safe-area-inset-bottom));
+  top: 34%;
+  bottom: auto;
   transform: translateX(-50%);
   margin: 0;
   padding: 8px 16px;

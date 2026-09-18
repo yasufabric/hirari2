@@ -36,7 +36,7 @@ export class Player {
     const armR = 7 + power * 7
     const chestW = 18 + power * 12
     const reach = shoulder + armR + 10
-    const s = Math.min(1, (laneHalfPx - 2) / reach)
+    const s = Math.min(1.35, (laneHalfPx + 10) / reach)
     const stretch = 1 + flex * 0.1
     const squash = 1 - flex * 0.05
 
