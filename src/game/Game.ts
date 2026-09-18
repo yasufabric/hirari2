@@ -54,7 +54,7 @@ const HITSTOP_SEC = 10 / 60
 const HINT_SEC = 2.8
 const GHOST_LIFE = 0.18
 const POP_LIFE = 0.32
-const FLOAT_LIFE = 0.7
+const FLOAT_LIFE = 1.05
 const MAT_FLASH_SEC = 0.22
 const FLEX_SEC = 0.22
 
@@ -512,7 +512,7 @@ export class Game {
       ctx.save()
       ctx.globalAlpha = t
       ctx.fillStyle = floater.color
-      ctx.font = '700 20px "Dela Gothic One", sans-serif'
+      ctx.font = '700 22px "Dela Gothic One", sans-serif'
       ctx.textAlign = 'center'
       ctx.textBaseline = 'middle'
       ctx.fillText(floater.text, floater.x, floater.y - (1 - t) * 28)
