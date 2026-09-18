@@ -8,8 +8,8 @@ import {
   MUTE_STORAGE_KEY,
   OBSTACLE_SIZE,
   OBSTACLE_SPEED_GROWTH,
+  PLAYER_ABOVE_PADS,
   PLAYER_RADIUS,
-  PLAYER_Y_RATIO,
   PROTEIN_SPAWN_CHANCE,
   SPAWN_INTERVAL_DECAY_PER_SEC,
 } from './config'
@@ -18,7 +18,7 @@ import { Obstacle } from './Obstacle'
 import { Player } from './Player'
 import { RockBgm } from './RockBgm'
 import { Sfx } from './Sfx'
-import { attachKeyboard, attachSwipe } from './input'
+import { attachKeyboard, attachLanePads } from './input'
 import { BLOOD, CAN, IRON, MAT, MAT_LIT, WHEY, WHEY_DEEP } from './palette'
 import {
   hirariPoints,
@@ -44,6 +44,8 @@ export type GameChrome = {
   overHirari: HTMLElement
   hint: HTMLElement
   mute: HTMLButtonElement
+  pads: HTMLElement
+  padButtons: HTMLButtonElement[]
 }
 
 type Ghost = { x: number; y: number; muscle: number; life: number }
@@ -116,7 +118,7 @@ export class Game {
     this.resize()
     window.addEventListener('resize', () => this.resize())
     window.addEventListener('orientationchange', () => this.resize())
-    attachSwipe(this.canvas, (direction) => this.handleMove(direction))
+    attachLanePads(this.chrome.pads, (lane) => this.goToLane(lane))
     attachKeyboard(
       (direction) => this.handleMove(direction),
       () => this.handleConfirm(),
@@ -172,13 +174,18 @@ export class Game {
       { length: LANE_COUNT },
       (_, i) => (this.width * (i + 1)) / (LANE_COUNT + 1),
     )
-    this.playerY = this.height * PLAYER_Y_RATIO
+    const padH = this.chrome.pads.getBoundingClientRect().height
+    this.playerY = this.height - padH - PLAYER_ABOVE_PADS
     this.player.displayX = this.laneXPositions[this.player.lane]
   }
 
   private handleMove(direction: -1 | 1): void {
+    this.goToLane(this.player.lane + direction)
+  }
+
+  private goToLane(lane: number): void {
     if (this.status !== 'playing' || this.stunned) return
-    const next = Math.max(0, Math.min(LANE_COUNT - 1, this.player.lane + direction))
+    const next = Math.max(0, Math.min(LANE_COUNT - 1, lane))
     if (next === this.player.lane) return
     this.ghosts.push({
       x: this.player.displayX,
@@ -471,7 +478,7 @@ export class Game {
   private drawMats(ctx: CanvasRenderingContext2D): void {
     const w = this.matWidth()
     const h = 26
-    const y = this.playerY + 28
+    const y = this.playerY + 52
     for (let i = 0; i < LANE_COUNT; i++) {
       const x = this.laneXPositions[i]
       const lit = i === this.player.lane
@@ -537,5 +544,9 @@ export class Game {
     this.chrome.mute.setAttribute('aria-pressed', this.muted ? 'true' : 'false')
     this.chrome.mute.textContent = this.muted ? 'ミュート' : 'おと'
     this.chrome.mute.setAttribute('aria-label', this.muted ? '音を出す' : '音を消す')
+    for (const button of this.chrome.padButtons) {
+      const current = Number(button.dataset.lane) === this.player.lane
+      button.setAttribute('aria-current', current ? 'true' : 'false')
+    }
   }
 }

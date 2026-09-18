@@ -22,6 +22,8 @@ const chrome: GameChrome = {
   overHirari: must('over-hirari'),
   hint: must('hint'),
   mute: must<HTMLButtonElement>('mute'),
+  pads: must('pads'),
+  padButtons: [...must('pads').querySelectorAll<HTMLButtonElement>('[data-lane]')],
 }
 
 new Game(canvas, chrome).init()

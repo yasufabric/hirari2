@@ -1,57 +1,18 @@
-import { SWIPE_THRESHOLD_PX } from './config'
-
-export function attachSwipe(
-  canvas: HTMLCanvasElement,
-  onMove: (direction: -1 | 1) => void,
+export function attachLanePads(
+  pads: HTMLElement,
+  onLane: (lane: number) => void,
 ): void {
-  let pointerId: number | null = null
-  let startX = 0
-  let startY = 0
-  let lastMoveX = 0
-
-  canvas.addEventListener(
-    'pointerdown',
-    (e) => {
+  const buttons = pads.querySelectorAll<HTMLButtonElement>('[data-lane]')
+  for (const button of buttons) {
+    const go = (e: Event): void => {
       e.preventDefault()
-      pointerId = e.pointerId
-      startX = e.clientX
-      startY = e.clientY
-      lastMoveX = e.clientX
-      canvas.setPointerCapture(e.pointerId)
-    },
-    { passive: false },
-  )
-
-  canvas.addEventListener(
-    'pointermove',
-    (e) => {
-      if (pointerId !== e.pointerId) return
-      e.preventDefault()
-
-      const dx = e.clientX - lastMoveX
-      const totalDy = Math.abs(e.clientY - startY)
-      if (Math.abs(dx) < SWIPE_THRESHOLD_PX || totalDy > Math.abs(e.clientX - startX) + 24) {
-        return
-      }
-
-      onMove(dx < 0 ? -1 : 1)
-      lastMoveX = e.clientX
-      startX = e.clientX
-      startY = e.clientY
-    },
-    { passive: false },
-  )
-
-  canvas.addEventListener('pointerup', (e) => {
-    if (pointerId !== e.pointerId) return
-    pointerId = null
-    canvas.releasePointerCapture(e.pointerId)
-  })
-
-  canvas.addEventListener('pointercancel', (e) => {
-    if (pointerId !== e.pointerId) return
-    pointerId = null
-  })
+      const lane = Number(button.dataset.lane)
+      if (!Number.isInteger(lane)) return
+      onLane(lane)
+    }
+    button.addEventListener('pointerdown', go)
+    button.addEventListener('click', go)
+  }
 }
 
 export function attachKeyboard(
