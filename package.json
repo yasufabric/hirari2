@@ -7,7 +7,7 @@
     "dev": "vite --host",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview --host",
-    "test": "tsx --test test/scoring.test.ts"
+    "test": "tsx --test test/*.test.ts"
   },
   "devDependencies": {
     "tsx": "^4.23.13",
