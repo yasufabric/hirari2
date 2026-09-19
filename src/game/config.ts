@@ -1,14 +1,16 @@
 export const LANE_COUNT = 3
 
-export const PLAYER_ABOVE_PADS = 48
+export const PLAYER_FOOT_Y = 59
+export const MAT_HEIGHT = 12
+export const MAT_ABOVE_PADS = 10
 export const PLAYER_RADIUS = 24
 export const PLAYER_EASE = 14 // higher = snappier follow toward the target lane
 export const PLAYER_DRAW_SCALE_CAP = 0.7
 export const PLAYER_BASE_REACH = 41
 export const MAX_MUSCLE_LEVEL = 8
 
-export const OBSTACLE_SIZE = 34
-export const PROTEIN_SIZE = 30
+export const OBSTACLE_SIZE = 44
+export const PROTEIN_SIZE = 34
 export const PROTEIN_SCORE = 80
 export const PROTEIN_COMBO_BONUS = 25
 export const PROTEIN_SPAWN_CHANCE = 0.42
