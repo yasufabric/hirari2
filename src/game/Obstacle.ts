@@ -52,6 +52,15 @@ export class Obstacle {
     ctx.shadowOffsetY = 5
 
     ctx.beginPath()
+    ctx.moveTo(0, -half - 10)
+    ctx.lineTo(half + 9, 0)
+    ctx.lineTo(0, half + 10)
+    ctx.lineTo(-half - 9, 0)
+    ctx.closePath()
+    ctx.fillStyle = CAN_LID
+    ctx.fill()
+
+    ctx.beginPath()
     ctx.moveTo(0, -half - 6)
     ctx.lineTo(half + 5, 0)
     ctx.lineTo(0, half + 6)
@@ -65,11 +74,7 @@ export class Obstacle {
     ctx.stroke()
 
     ctx.beginPath()
-    ctx.moveTo(0, -half + 8)
-    ctx.lineTo(half - 8, 0)
-    ctx.lineTo(0, half - 8)
-    ctx.lineTo(-half + 8, 0)
-    ctx.closePath()
+    ctx.arc(0, 1, Math.max(8, half * 0.42), 0, Math.PI * 2)
     ctx.fillStyle = WARNING
     ctx.fill()
     ctx.strokeStyle = IRON
@@ -78,10 +83,10 @@ export class Obstacle {
 
     ctx.fillStyle = IRON
     ctx.beginPath()
-    ctx.roundRect(-3.2, -half + 14, 6.4, half - 4, 2)
+    ctx.roundRect(-2.8, -half * 0.22, 5.6, half * 0.34, 1.8)
     ctx.fill()
     ctx.beginPath()
-    ctx.arc(0, half - 12, 3.4, 0, Math.PI * 2)
+    ctx.arc(0, half * 0.28, 2.8, 0, Math.PI * 2)
     ctx.fill()
 
     ctx.restore()
