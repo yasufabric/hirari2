@@ -18,7 +18,7 @@ import { Obstacle } from './Obstacle'
 import { Player } from './Player'
 import { RockBgm } from './RockBgm'
 import { Sfx } from './Sfx'
-import { attachKeyboard, attachLanePads } from './input'
+import { attachKeyboard, attachLanePads, attachPlayfieldTap } from './input'
 import { BLOOD, CAN, IRON, MAT, MAT_LIT, WHEY, WHEY_DEEP } from './palette'
 import {
   hirariPoints,
@@ -119,6 +119,7 @@ export class Game {
     window.addEventListener('resize', () => this.resize())
     window.addEventListener('orientationchange', () => this.resize())
     attachLanePads(this.chrome.pads, (lane) => this.goToLane(lane))
+    attachPlayfieldTap(this.canvas, (lane) => this.goToLane(lane))
     attachKeyboard(
       (direction) => this.handleMove(direction),
       () => this.handleConfirm(),
@@ -477,8 +478,8 @@ export class Game {
 
   private drawMats(ctx: CanvasRenderingContext2D): void {
     const w = this.matWidth()
-    const h = 26
-    const y = this.playerY + 52
+    const h = 22
+    const y = this.playerY + 44
     for (let i = 0; i < LANE_COUNT; i++) {
       const x = this.laneXPositions[i]
       const lit = i === this.player.lane

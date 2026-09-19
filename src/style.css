@@ -9,6 +9,7 @@
   --paper: #f4ead8;
   --display: 'Dela Gothic One', 'Hiragino Mincho ProN', serif;
   --body: 'Zen Kaku Gothic New', 'Hiragino Sans', sans-serif;
+  --lane-pad-height: 108px;
 }
 
 html,
@@ -131,7 +132,7 @@ body {
 #ready,
 #over {
   position: absolute;
-  inset: 0 0 calc(96px + env(safe-area-inset-bottom)) 0;
+  inset: 0 0 calc(var(--lane-pad-height) + env(safe-area-inset-bottom)) 0;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -211,8 +212,8 @@ button:focus-visible {
   z-index: 4;
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
-  gap: 8px;
-  padding: 10px 10px max(12px, env(safe-area-inset-bottom));
+  gap: 0;
+  padding: 0 0 env(safe-area-inset-bottom);
   background: color-mix(in srgb, var(--whey) 72%, var(--iron));
   border-top: 3px solid var(--iron);
 }
@@ -220,8 +221,16 @@ button:focus-visible {
 #pads button {
   margin: 0;
   min-width: 0;
-  min-height: 72px;
-  font-size: 20px;
+  min-height: var(--lane-pad-height);
+  padding: 0;
+  border: none;
+  border-right: 3px solid var(--iron);
+  border-radius: 0;
+  font-size: 22px;
+}
+
+#pads button:last-child {
+  border-right: none;
 }
 
 #pads button[aria-current='true'] {
@@ -230,6 +239,12 @@ button:focus-visible {
 
 #mute[aria-pressed='true'] {
   background: var(--paper);
+}
+
+@media (max-height: 500px) {
+  :root {
+    --lane-pad-height: 72px;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

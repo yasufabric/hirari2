@@ -1,5 +1,10 @@
 import { BODY, BODY_LIGHT, CAN, HAIR, IRON, SHORTS, WARNING } from './palette'
-import { MAX_MUSCLE_LEVEL, PLAYER_EASE } from './config'
+import { MAX_MUSCLE_LEVEL, PLAYER_BASE_REACH, PLAYER_DRAW_SCALE_CAP, PLAYER_EASE } from './config'
+
+export function playerDrawScale(laneHalfPx: number): number {
+  if (!(laneHalfPx > 0)) return PLAYER_DRAW_SCALE_CAP
+  return Math.min(PLAYER_DRAW_SCALE_CAP, Math.max(0.52, (laneHalfPx - 4) / PLAYER_BASE_REACH))
+}
 
 export class Player {
   lane: number
@@ -33,10 +38,8 @@ export class Player {
   ): void {
     const power = muscle / MAX_MUSCLE_LEVEL
     const shoulder = 24 + power * 16
-    const armR = 7 + power * 7
     const chestW = 18 + power * 12
-    const reach = shoulder + armR + 10
-    const s = Math.min(1.35, (laneHalfPx + 10) / reach)
+    const s = playerDrawScale(laneHalfPx)
     const stretch = 1 + flex * 0.1
     const squash = 1 - flex * 0.05
 

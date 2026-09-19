@@ -1,3 +1,24 @@
+import { LANE_COUNT } from './config'
+
+export function laneFromTapX(x: number, width: number, laneCount = LANE_COUNT): number {
+  if (laneCount <= 0) return 0
+  if (!(width > 0) || !Number.isFinite(x)) return Math.floor(laneCount / 2)
+  const t = Math.min(Math.max(x / width, 0), 1)
+  if (t === 1) return laneCount - 1
+  return Math.floor(t * laneCount)
+}
+
+export function attachPlayfieldTap(
+  canvas: HTMLCanvasElement,
+  onLane: (lane: number) => void,
+): void {
+  canvas.addEventListener('pointerdown', (e) => {
+    e.preventDefault()
+    const rect = canvas.getBoundingClientRect()
+    onLane(laneFromTapX(e.clientX - rect.left, rect.width))
+  })
+}
+
 export function attachLanePads(
   pads: HTMLElement,
   onLane: (lane: number) => void,
