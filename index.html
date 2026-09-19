@@ -31,21 +31,30 @@
         </div>
         <div class="scores">
           <span id="score">0</span>
+          <span id="combo" hidden></span>
           <span id="best-wrap">いちばん <span id="best">0</span></span>
         </div>
       </div>
-      <p id="hint" hidden>← スワイプ →</p>
+      <p id="hint" hidden>下のレーンをタップ</p>
       <section id="ready">
         <p class="kicker">夜のプロテイン棚</p>
         <h1>マッスルひらり</h1>
-        <p class="lede">黄色いダイヤは添加物。缶はプロテイン。横にスワイプしてかわす。</p>
+        <p class="lede">黄色いダイヤは添加物。缶はプロテイン。下をタップしてかわす。隣をかわすとひらり。</p>
         <button type="button" id="start">はじめる</button>
       </section>
       <section id="over" hidden>
+        <p class="kicker" id="over-rank"></p>
         <h1>やられた</h1>
         <p id="over-score"></p>
+        <p id="over-hirari" class="lede"></p>
         <button type="button" id="restart">もういちど</button>
       </section>
+      <button type="button" id="mute" aria-pressed="false" aria-label="音を消す">おと</button>
+      <nav id="pads" aria-label="レーン">
+        <button type="button" data-lane="0" aria-label="左レーン">左</button>
+        <button type="button" data-lane="1" aria-label="真ん中">中</button>
+        <button type="button" data-lane="2" aria-label="右レーン">右</button>
+      </nav>
     </div>
     <script type="module" src="/src/main.ts"></script>
   </body>

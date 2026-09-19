@@ -9,6 +9,7 @@ export class Obstacle {
   size: number
   kind: FallingItemKind
   collected = false
+  grazed = false
 
   constructor(lane: number, y: number, kind: FallingItemKind = 'additive') {
     this.lane = lane
@@ -28,11 +29,18 @@ export class Obstacle {
   draw(ctx: CanvasRenderingContext2D, laneXPositions: number[]): void {
     const x = laneXPositions[this.lane]
     const half = this.size / 2
-    if (this.kind === 'protein') {
-      this.drawProtein(ctx, x, half)
-      return
+    switch (this.kind) {
+      case 'protein':
+        this.drawProtein(ctx, x, half)
+        return
+      case 'additive':
+        this.drawAdditive(ctx, x, half)
+        return
+      default: {
+        const _exhaustive: never = this.kind
+        throw new Error(`Unhandled falling item: ${_exhaustive}`)
+      }
     }
-    this.drawAdditive(ctx, x, half)
   }
 
   private drawAdditive(ctx: CanvasRenderingContext2D, x: number, half: number): void {

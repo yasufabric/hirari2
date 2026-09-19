@@ -3,13 +3,15 @@ export class RockBgm {
   private master: GainNode | null = null
   private timer: number | null = null
   private step = 0
+  private muted = false
+  private dimmed = false
 
   start(): void {
     if (!this.audio) {
       this.audio = new AudioContext()
       this.master = this.audio.createGain()
-      this.master.gain.value = 0.16
       this.master.connect(this.audio.destination)
+      this.applyGain(true)
     }
 
     void this.audio.resume()
@@ -19,9 +21,24 @@ export class RockBgm {
     this.timer = window.setInterval(() => this.playStep(), 150)
   }
 
+  setMuted(muted: boolean): void {
+    this.muted = muted
+    this.applyGain()
+  }
+
   setDimmed(dimmed: boolean): void {
+    this.dimmed = dimmed
+    this.applyGain()
+  }
+
+  private applyGain(instant = false): void {
     if (!this.audio || !this.master) return
-    this.master.gain.setTargetAtTime(dimmed ? 0.05 : 0.16, this.audio.currentTime, 0.08)
+    const target = this.muted ? 0.0001 : this.dimmed ? 0.05 : 0.16
+    if (instant) {
+      this.master.gain.value = target
+      return
+    }
+    this.master.gain.setTargetAtTime(target, this.audio.currentTime, 0.08)
   }
 
   private playStep(): void {

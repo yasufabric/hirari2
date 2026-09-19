@@ -5,21 +5,29 @@ import {
   LANE_COUNT,
   MAX_MUSCLE_LEVEL,
   MIN_SPAWN_INTERVAL_MS,
+  MUTE_STORAGE_KEY,
   OBSTACLE_SIZE,
   OBSTACLE_SPEED_GROWTH,
+  PLAYER_ABOVE_PADS,
   PLAYER_RADIUS,
-  PLAYER_Y_RATIO,
-  PROTEIN_SCORE,
   PROTEIN_SPAWN_CHANCE,
-  SCORE_PER_SECOND,
   SPAWN_INTERVAL_DECAY_PER_SEC,
 } from './config'
 import type { GameStatus } from './GameState'
 import { Obstacle } from './Obstacle'
 import { Player } from './Player'
 import { RockBgm } from './RockBgm'
-import { attachSwipe } from './input'
-import { BLOOD, IRON, MAT, MAT_LIT, WHEY, WHEY_DEEP } from './palette'
+import { Sfx } from './Sfx'
+import { attachKeyboard, attachLanePads } from './input'
+import { BLOOD, CAN, IRON, MAT, MAT_LIT, WHEY, WHEY_DEEP } from './palette'
+import {
+  hirariPoints,
+  isAdjacentHirari,
+  muscleRank,
+  muscleRankTitle,
+  proteinPoints,
+  survivalScore,
+} from './scoring'
 
 export type GameChrome = {
   hud: HTMLElement
@@ -29,19 +37,28 @@ export type GameChrome = {
   restart: HTMLButtonElement
   score: HTMLElement
   best: HTMLElement
+  combo: HTMLElement
   muscleFill: HTMLElement
   overScore: HTMLElement
+  overRank: HTMLElement
+  overHirari: HTMLElement
   hint: HTMLElement
+  mute: HTMLButtonElement
+  pads: HTMLElement
+  padButtons: HTMLButtonElement[]
 }
 
 type Ghost = { x: number; y: number; muscle: number; life: number }
 type Pop = { x: number; y: number; life: number }
+type Floater = { x: number; y: number; life: number; text: string; color: string }
 
 const HITSTOP_SEC = 10 / 60
 const HINT_SEC = 2.8
 const GHOST_LIFE = 0.18
 const POP_LIFE = 0.32
+const FLOAT_LIFE = 1.05
 const MAT_FLASH_SEC = 0.22
+const FLEX_SEC = 0.22
 
 export class Game {
   private ctx: CanvasRenderingContext2D
@@ -57,6 +74,7 @@ export class Game {
   private player: Player
   private obstacles: Obstacle[] = []
   private bgm = new RockBgm()
+  private sfx = new Sfx()
 
   private score = 0
   private bestScore = 0
@@ -71,9 +89,15 @@ export class Game {
   private matFlash = 0
   private hintLeft = 0
   private reduceMotion = false
+  private flex = 0
+  private hirariCount = 0
+  private proteinCombo = 0
+  private newBest = false
+  private muted = false
 
   private ghosts: Ghost[] = []
   private pops: Pop[] = []
+  private floaters: Floater[] = []
 
   constructor(
     private canvas: HTMLCanvasElement,
@@ -84,7 +108,9 @@ export class Game {
     this.ctx = ctx
     const stored = Number(localStorage.getItem(BEST_SCORE_STORAGE_KEY) ?? 0)
     this.bestScore = Number.isFinite(stored) ? stored : 0
+    this.muted = localStorage.getItem(MUTE_STORAGE_KEY) === '1'
     this.player = new Player(Math.floor(LANE_COUNT / 2), 0)
+    this.applyMute()
   }
 
   init(): void {
@@ -92,11 +118,32 @@ export class Game {
     this.resize()
     window.addEventListener('resize', () => this.resize())
     window.addEventListener('orientationchange', () => this.resize())
-    attachSwipe(this.canvas, (direction) => this.handleMove(direction))
+    attachLanePads(this.chrome.pads, (lane) => this.goToLane(lane))
+    attachKeyboard(
+      (direction) => this.handleMove(direction),
+      () => this.handleConfirm(),
+    )
     this.chrome.start.addEventListener('click', () => this.start())
     this.chrome.restart.addEventListener('click', () => this.start())
+    this.chrome.mute.addEventListener('click', () => this.toggleMute())
     this.syncChrome()
     requestAnimationFrame(this.loop)
+  }
+
+  private handleConfirm(): void {
+    if (this.status === 'ready' || this.status === 'gameover') this.start()
+  }
+
+  private toggleMute(): void {
+    this.muted = !this.muted
+    localStorage.setItem(MUTE_STORAGE_KEY, this.muted ? '1' : '0')
+    this.applyMute()
+    this.syncChrome()
+  }
+
+  private applyMute(): void {
+    this.bgm.setMuted(this.muted)
+    this.sfx.setMuted(this.muted)
   }
 
   private start(): void {
@@ -110,6 +157,7 @@ export class Game {
     this.hintLeft = HINT_SEC
     this.bgm.start()
     this.bgm.setDimmed(false)
+    this.applyMute()
     this.chrome.hint.hidden = false
     this.syncChrome()
   }
@@ -126,13 +174,18 @@ export class Game {
       { length: LANE_COUNT },
       (_, i) => (this.width * (i + 1)) / (LANE_COUNT + 1),
     )
-    this.playerY = this.height * PLAYER_Y_RATIO
+    const padH = this.chrome.pads.getBoundingClientRect().height
+    this.playerY = this.height - padH - PLAYER_ABOVE_PADS
     this.player.displayX = this.laneXPositions[this.player.lane]
   }
 
   private handleMove(direction: -1 | 1): void {
+    this.goToLane(this.player.lane + direction)
+  }
+
+  private goToLane(lane: number): void {
     if (this.status !== 'playing' || this.stunned) return
-    const next = Math.max(0, Math.min(LANE_COUNT - 1, this.player.lane + direction))
+    const next = Math.max(0, Math.min(LANE_COUNT - 1, lane))
     if (next === this.player.lane) return
     this.ghosts.push({
       x: this.player.displayX,
@@ -157,8 +210,13 @@ export class Game {
     this.player.muscleLevel = 0
     this.ghosts = []
     this.pops = []
+    this.floaters = []
     this.matFlash = 0
     this.matFlashLane = -1
+    this.flex = 0
+    this.hirariCount = 0
+    this.proteinCombo = 0
+    this.newBest = false
   }
 
   private loop = (ts: number): void => {
@@ -186,7 +244,7 @@ export class Game {
     if (this.status !== 'playing') return
 
     this.elapsed += dt
-    this.score += dt * SCORE_PER_SECOND
+    this.score += survivalScore(dt, this.player.muscleLevel)
     if (this.hintLeft > 0) {
       this.hintLeft -= dt
       if (this.hintLeft <= 0) this.chrome.hint.hidden = true
@@ -205,9 +263,9 @@ export class Game {
     }
 
     for (const obstacle of this.obstacles) obstacle.update(dt, speed)
-    this.obstacles = this.obstacles.filter((o) => !o.isOffscreen(this.height))
-
     this.checkCollisions()
+    this.checkHirari()
+    this.dropMissedProtein()
     this.obstacles = this.obstacles.filter((o) => !o.isOffscreen(this.height))
   }
 
@@ -215,12 +273,16 @@ export class Game {
     this.flash = Math.max(0, this.flash - dt * 4)
     this.shake = Math.max(0, this.shake - dt * 5)
     this.matFlash = Math.max(0, this.matFlash - dt)
+    this.flex = Math.max(0, this.flex - dt)
     this.ghosts = this.ghosts
       .map((g) => ({ ...g, life: g.life - dt }))
       .filter((g) => g.life > 0)
     this.pops = this.pops
       .map((p) => ({ ...p, life: p.life - dt }))
       .filter((p) => p.life > 0)
+    this.floaters = this.floaters
+      .map((f) => ({ ...f, life: f.life - dt }))
+      .filter((f) => f.life > 0)
   }
 
   private spawnObstacle(): void {
@@ -246,21 +308,69 @@ export class Game {
     const hitRange = PLAYER_RADIUS + OBSTACLE_SIZE / 2
     for (const obstacle of this.obstacles) {
       if (obstacle.lane !== this.player.lane) continue
-      if (Math.abs(obstacle.y - this.playerY) < hitRange) {
-        if (obstacle.kind === 'protein') {
+      if (Math.abs(obstacle.y - this.playerY) >= hitRange) continue
+      switch (obstacle.kind) {
+        case 'protein':
           obstacle.collected = true
-          this.score += PROTEIN_SCORE
+          this.proteinCombo += 1
           this.player.muscleLevel = Math.min(MAX_MUSCLE_LEVEL, this.player.muscleLevel + 1)
-          this.pops.push({
-            x: this.laneXPositions[obstacle.lane],
-            y: obstacle.y,
-            life: POP_LIFE,
-          })
-          continue
+          {
+            const points = proteinPoints(this.player.muscleLevel, this.proteinCombo)
+            this.score += points
+            this.pops.push({
+              x: this.laneXPositions[obstacle.lane],
+              y: obstacle.y,
+              life: POP_LIFE,
+            })
+            this.floaters.push({
+              x: this.laneXPositions[obstacle.lane],
+              y: obstacle.y - 18,
+              life: FLOAT_LIFE,
+              text: this.proteinCombo > 1 ? `+${points} ×${this.proteinCombo}` : `+${points}`,
+              color: CAN,
+            })
+            this.flex = this.reduceMotion ? 0 : FLEX_SEC
+            this.sfx.collect()
+          }
+          break
+        case 'additive':
+          this.beginDeath()
+          return
+        default: {
+          const _exhaustive: never = obstacle.kind
+          throw new Error(`Unhandled falling item: ${_exhaustive}`)
         }
-        this.beginDeath()
-        return
       }
+    }
+  }
+
+  private checkHirari(): void {
+    if (this.status !== 'playing' || this.stunned) return
+    for (const obstacle of this.obstacles) {
+      if (obstacle.kind !== 'additive' || obstacle.grazed) continue
+      if (obstacle.y <= this.playerY) continue
+      obstacle.grazed = true
+      if (!isAdjacentHirari(obstacle.lane, this.player.lane, obstacle.y, this.playerY)) continue
+      const points = hirariPoints(this.player.muscleLevel)
+      this.score += points
+      this.hirariCount += 1
+      this.floaters.push({
+        x: this.laneXPositions[obstacle.lane],
+        y: this.playerY - 36,
+        life: FLOAT_LIFE,
+        text: 'ひらり!',
+        color: IRON,
+      })
+      this.sfx.hirari()
+    }
+  }
+
+  private dropMissedProtein(): void {
+    if (this.status !== 'playing' || this.stunned) return
+    for (const obstacle of this.obstacles) {
+      if (obstacle.kind !== 'protein' || obstacle.collected) continue
+      if (obstacle.y - obstacle.size <= this.height) continue
+      this.proteinCombo = 0
     }
   }
 
@@ -271,9 +381,11 @@ export class Game {
     this.shake = this.reduceMotion ? 0 : 1
     this.chrome.hint.hidden = true
     this.bgm.setDimmed(true)
+    this.sfx.hit()
     navigator.vibrate?.(40)
     const finalScore = Math.floor(this.score)
-    if (finalScore > this.bestScore) {
+    this.newBest = finalScore > this.bestScore
+    if (this.newBest) {
       this.bestScore = finalScore
       localStorage.setItem(BEST_SCORE_STORAGE_KEY, String(this.bestScore))
     }
@@ -335,8 +447,23 @@ export class Game {
       this.player.draw(ctx, ghost.y, ghost.life / GHOST_LIFE, ghost.x, ghost.muscle, laneHalfPx)
     }
 
-    this.player.draw(ctx, this.playerY, 1, this.player.displayX, this.player.muscleLevel, laneHalfPx)
+    const bounce =
+      this.status === 'playing' && !this.stunned && !this.reduceMotion
+        ? Math.sin(this.elapsed * 7) * 3
+        : 0
+    const flex = this.reduceMotion ? 0 : this.flex / FLEX_SEC
+    this.player.draw(
+      ctx,
+      this.playerY,
+      1,
+      this.player.displayX,
+      this.player.muscleLevel,
+      laneHalfPx,
+      bounce,
+      flex,
+    )
     this.drawPops(ctx)
+    this.drawFloaters(ctx)
 
     if (this.flash > 0) {
       ctx.fillStyle = BLOOD
@@ -351,7 +478,7 @@ export class Game {
   private drawMats(ctx: CanvasRenderingContext2D): void {
     const w = this.matWidth()
     const h = 26
-    const y = this.playerY + 28
+    const y = this.playerY + 52
     for (let i = 0; i < LANE_COUNT; i++) {
       const x = this.laneXPositions[i]
       const lit = i === this.player.lane
@@ -386,13 +513,40 @@ export class Game {
     }
   }
 
+  private drawFloaters(ctx: CanvasRenderingContext2D): void {
+    for (const floater of this.floaters) {
+      const t = Math.max(0, floater.life / FLOAT_LIFE)
+      ctx.save()
+      ctx.globalAlpha = t
+      ctx.fillStyle = floater.color
+      ctx.font = '700 22px "Dela Gothic One", sans-serif'
+      ctx.textAlign = 'center'
+      ctx.textBaseline = 'middle'
+      ctx.fillText(floater.text, floater.x, floater.y - (1 - t) * 28)
+      ctx.restore()
+    }
+  }
+
   private syncChrome(): void {
     this.chrome.ready.hidden = this.status !== 'ready'
     this.chrome.over.hidden = this.status !== 'gameover'
     this.chrome.hud.hidden = this.status !== 'playing' && !this.stunned
     this.chrome.score.textContent = String(Math.floor(this.score))
     this.chrome.best.textContent = String(this.bestScore)
+    this.chrome.combo.hidden = this.proteinCombo < 2
+    this.chrome.combo.textContent = `プロテイン ×${this.proteinCombo}`
     this.chrome.muscleFill.style.width = `${(this.player.muscleLevel / MAX_MUSCLE_LEVEL) * 100}%`
-    this.chrome.overScore.textContent = `今回 ${Math.floor(this.score)}  /  いちばん ${this.bestScore}`
+    const rank = muscleRankTitle(muscleRank(this.player.muscleLevel))
+    this.chrome.overRank.textContent = rank
+    const bestBit = this.newBest ? `いちばん 更新 ${this.bestScore}` : `いちばん ${this.bestScore}`
+    this.chrome.overScore.textContent = `今回 ${Math.floor(this.score)}  /  ${bestBit}`
+    this.chrome.overHirari.textContent = `ひらり ${this.hirariCount}かい`
+    this.chrome.mute.setAttribute('aria-pressed', this.muted ? 'true' : 'false')
+    this.chrome.mute.textContent = this.muted ? 'ミュート' : 'おと'
+    this.chrome.mute.setAttribute('aria-label', this.muted ? '音を出す' : '音を消す')
+    for (const button of this.chrome.padButtons) {
+      const current = Number(button.dataset.lane) === this.player.lane
+      button.setAttribute('aria-current', current ? 'true' : 'false')
+    }
   }
 }
