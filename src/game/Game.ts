@@ -5,26 +5,28 @@ import {
   LANE_COUNT,
   MAX_MUSCLE_LEVEL,
   MIN_SPAWN_INTERVAL_MS,
+  MAT_HEIGHT,
   MUTE_STORAGE_KEY,
   OBSTACLE_SIZE,
   OBSTACLE_SPEED_GROWTH,
-  PLAYER_ABOVE_PADS,
   PLAYER_RADIUS,
   PROTEIN_SPAWN_CHANCE,
   SPAWN_INTERVAL_DECAY_PER_SEC,
 } from './config'
 import type { GameStatus } from './GameState'
+import { matTopY, playerStandY } from './layout'
 import { Obstacle } from './Obstacle'
-import { Player } from './Player'
+import { Player, playerDrawScale } from './Player'
 import { RockBgm } from './RockBgm'
 import { Sfx } from './Sfx'
 import { attachKeyboard, attachLanePads, attachPlayfieldTap } from './input'
-import { BLOOD, CAN, IRON, MAT, MAT_LIT, WHEY, WHEY_DEEP } from './palette'
+import { BLOOD, CAN, HAZARD, IRON, MAT, MAT_LIT, WARNING, WHEY, WHEY_DEEP } from './palette'
 import {
   hirariPoints,
   isAdjacentHirari,
   muscleRank,
   muscleRankTitle,
+  proteinFloaterText,
   proteinPoints,
   survivalScore,
 } from './scoring'
@@ -51,14 +53,17 @@ export type GameChrome = {
 type Ghost = { x: number; y: number; muscle: number; life: number }
 type Pop = { x: number; y: number; life: number }
 type Floater = { x: number; y: number; life: number; text: string; color: string }
+type Spark = { x: number; y: number; vx: number; vy: number; life: number }
 
 const HITSTOP_SEC = 10 / 60
 const HINT_SEC = 2.8
 const GHOST_LIFE = 0.18
 const POP_LIFE = 0.32
 const FLOAT_LIFE = 1.05
+const SPARK_LIFE = 0.28
 const MAT_FLASH_SEC = 0.22
 const FLEX_SEC = 0.22
+const WARN_DISTANCE = 280
 
 export class Game {
   private ctx: CanvasRenderingContext2D
@@ -98,6 +103,7 @@ export class Game {
   private ghosts: Ghost[] = []
   private pops: Pop[] = []
   private floaters: Floater[] = []
+  private sparks: Spark[] = []
 
   constructor(
     private canvas: HTMLCanvasElement,
@@ -176,7 +182,7 @@ export class Game {
       (_, i) => (this.width * (i + 1)) / (LANE_COUNT + 1),
     )
     const padH = this.chrome.pads.getBoundingClientRect().height
-    this.playerY = this.height - padH - PLAYER_ABOVE_PADS
+    this.playerY = playerStandY(this.height, padH, playerDrawScale(this.laneHalfPx()))
     this.player.displayX = this.laneXPositions[this.player.lane]
   }
 
@@ -212,6 +218,7 @@ export class Game {
     this.ghosts = []
     this.pops = []
     this.floaters = []
+    this.sparks = []
     this.matFlash = 0
     this.matFlashLane = -1
     this.flex = 0
@@ -284,6 +291,14 @@ export class Game {
     this.floaters = this.floaters
       .map((f) => ({ ...f, life: f.life - dt }))
       .filter((f) => f.life > 0)
+    this.sparks = this.sparks
+      .map((s) => ({
+        ...s,
+        life: s.life - dt,
+        x: s.x + s.vx * dt,
+        y: s.y + s.vy * dt,
+      }))
+      .filter((s) => s.life > 0)
   }
 
   private spawnObstacle(): void {
@@ -327,7 +342,7 @@ export class Game {
               x: this.laneXPositions[obstacle.lane],
               y: obstacle.y - 18,
               life: FLOAT_LIFE,
-              text: this.proteinCombo > 1 ? `+${points} ×${this.proteinCombo}` : `+${points}`,
+              text: proteinFloaterText(points, this.proteinCombo),
               color: CAN,
             })
             this.flex = this.reduceMotion ? 0 : FLEX_SEC
@@ -355,13 +370,7 @@ export class Game {
       const points = hirariPoints(this.player.muscleLevel)
       this.score += points
       this.hirariCount += 1
-      this.floaters.push({
-        x: this.laneXPositions[obstacle.lane],
-        y: this.playerY - 36,
-        life: FLOAT_LIFE,
-        text: 'ひらり!',
-        color: IRON,
-      })
+      this.spawnHirariSparks(this.laneXPositions[obstacle.lane], this.playerY - 8)
       this.sfx.hirari()
     }
   }
@@ -401,6 +410,28 @@ export class Game {
     return (this.width / (LANE_COUNT + 1)) * 0.78
   }
 
+  private laneHalfPx(): number {
+    return this.matWidth() / 2
+  }
+
+  private spawnHirariSparks(x: number, y: number): void {
+    if (this.reduceMotion) {
+      this.pops.push({ x, y, life: POP_LIFE * 0.55 })
+      return
+    }
+    for (let i = 0; i < 6; i++) {
+      const angle = (Math.PI * 2 * i) / 6 + Math.random() * 0.4
+      const speed = 70 + Math.random() * 46
+      this.sparks.push({
+        x,
+        y,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed - 28,
+        life: SPARK_LIFE,
+      })
+    }
+  }
+
   private render(): void {
     const ctx = this.ctx
     let ox = 0
@@ -423,7 +454,7 @@ export class Game {
     ctx.fillRect(0, 0, this.width, this.height)
 
     ctx.strokeStyle = IRON
-    ctx.globalAlpha = 0.14
+    ctx.globalAlpha = 0.22
     ctx.lineWidth = 2
     for (let i = 0; i < this.laneXPositions.length; i++) {
       const x = this.laneXPositions[i]
@@ -439,11 +470,12 @@ export class Game {
     ctx.fillRect(0, 0, this.width, 28)
     ctx.globalAlpha = 1
 
+    this.drawLaneWarnings(ctx)
     this.drawMats(ctx)
 
     for (const obstacle of this.obstacles) obstacle.draw(ctx, this.laneXPositions)
 
-    const laneHalfPx = this.matWidth() / 2
+    const laneHalfPx = this.laneHalfPx()
     for (const ghost of this.ghosts) {
       this.player.draw(ctx, ghost.y, ghost.life / GHOST_LIFE, ghost.x, ghost.muscle, laneHalfPx)
     }
@@ -464,6 +496,7 @@ export class Game {
       flex,
     )
     this.drawPops(ctx)
+    this.drawSparks(ctx)
     this.drawFloaters(ctx)
 
     if (this.flash > 0) {
@@ -476,25 +509,87 @@ export class Game {
     ctx.restore()
   }
 
+  private approachWarn(obstacle: Obstacle): number {
+    if (obstacle.kind !== 'additive' || obstacle.collected) return 0
+    if (obstacle.y >= this.playerY) return 0
+    return Math.max(0, 1 - (this.playerY - obstacle.y) / WARN_DISTANCE)
+  }
+
+  private drawLaneWarnings(ctx: CanvasRenderingContext2D): void {
+    for (const obstacle of this.obstacles) {
+      const t = this.approachWarn(obstacle)
+      if (t < 0.1) continue
+      const x = this.laneXPositions[obstacle.lane]
+      const w = this.matWidth() * 0.46
+      const top = Math.max(0, obstacle.y)
+      const grad = ctx.createLinearGradient(0, top, 0, this.playerY)
+      grad.addColorStop(0, 'rgba(214, 58, 34, 0)')
+      grad.addColorStop(1, `rgba(214, 58, 34, ${0.18 * t})`)
+      ctx.fillStyle = grad
+      ctx.fillRect(x - w / 2, top, w, Math.max(0, this.playerY - top))
+    }
+  }
+
   private drawMats(ctx: CanvasRenderingContext2D): void {
     const w = this.matWidth()
-    const h = 22
-    const y = this.playerY + 44
+    const h = MAT_HEIGHT
+    const y = matTopY(this.playerY, playerDrawScale(this.laneHalfPx()))
+    ctx.strokeStyle = IRON
+    ctx.globalAlpha = 0.16
+    ctx.lineWidth = 2
+    ctx.beginPath()
+    ctx.moveTo(0, y)
+    ctx.lineTo(this.width, y)
+    ctx.stroke()
+    ctx.globalAlpha = 1
+
     for (let i = 0; i < LANE_COUNT; i++) {
       const x = this.laneXPositions[i]
       const lit = i === this.player.lane
       const flash = i === this.matFlashLane ? this.matFlash / MAT_FLASH_SEC : 0
       ctx.fillStyle = lit ? MAT_LIT : MAT
       ctx.strokeStyle = IRON
-      ctx.lineWidth = lit ? 4 : 2
+      ctx.lineWidth = lit ? 3.5 : 2
       ctx.beginPath()
-      ctx.roundRect(x - w / 2, y - h / 2, w, h, 8)
+      ctx.roundRect(x - w / 2, y, w, h, 6)
       ctx.fill()
       ctx.stroke()
       if (flash > 0) {
         ctx.fillStyle = `rgba(245, 197, 24, ${0.55 * flash})`
         ctx.fill()
       }
+      if (lit) {
+        ctx.fillStyle = 'rgba(59, 36, 22, 0.16)'
+        ctx.beginPath()
+        ctx.ellipse(x, y + 3, 16, 4, 0, 0, Math.PI * 2)
+        ctx.fill()
+      }
+    }
+
+    this.drawLandingStamps(ctx, y)
+  }
+
+  private drawLandingStamps(ctx: CanvasRenderingContext2D, matTop: number): void {
+    for (const obstacle of this.obstacles) {
+      const t = this.approachWarn(obstacle)
+      if (t < 0.2) continue
+      const x = this.laneXPositions[obstacle.lane]
+      ctx.save()
+      ctx.globalAlpha = 0.22 + 0.38 * t
+      ctx.translate(x, matTop + MAT_HEIGHT / 2)
+      ctx.scale(0.42 + 0.18 * t, 0.28 + 0.12 * t)
+      ctx.beginPath()
+      ctx.moveTo(0, -14)
+      ctx.lineTo(12, 0)
+      ctx.lineTo(0, 14)
+      ctx.lineTo(-12, 0)
+      ctx.closePath()
+      ctx.fillStyle = HAZARD
+      ctx.fill()
+      ctx.strokeStyle = IRON
+      ctx.lineWidth = 3
+      ctx.stroke()
+      ctx.restore()
     }
   }
 
@@ -514,16 +609,37 @@ export class Game {
     }
   }
 
+  private drawSparks(ctx: CanvasRenderingContext2D): void {
+    for (const spark of this.sparks) {
+      const t = Math.max(0, spark.life / SPARK_LIFE)
+      ctx.save()
+      ctx.globalAlpha = t
+      ctx.fillStyle = WARNING
+      ctx.strokeStyle = IRON
+      ctx.lineWidth = 1.6
+      ctx.beginPath()
+      ctx.arc(spark.x, spark.y, 2.2 + t * 1.1, 0, Math.PI * 2)
+      ctx.fill()
+      ctx.stroke()
+      ctx.restore()
+    }
+  }
+
   private drawFloaters(ctx: CanvasRenderingContext2D): void {
     for (const floater of this.floaters) {
       const t = Math.max(0, floater.life / FLOAT_LIFE)
+      const y = floater.y - (1 - t) * 28
       ctx.save()
       ctx.globalAlpha = t
-      ctx.fillStyle = floater.color
       ctx.font = '700 22px "Dela Gothic One", sans-serif'
       ctx.textAlign = 'center'
       ctx.textBaseline = 'middle'
-      ctx.fillText(floater.text, floater.x, floater.y - (1 - t) * 28)
+      ctx.lineJoin = 'round'
+      ctx.strokeStyle = IRON
+      ctx.lineWidth = 4
+      ctx.strokeText(floater.text, floater.x, y)
+      ctx.fillStyle = floater.color
+      ctx.fillText(floater.text, floater.x, y)
       ctx.restore()
     }
   }

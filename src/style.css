@@ -50,6 +50,14 @@ body {
   z-index: 2;
 }
 
+.muscle,
+.scores {
+  padding: 8px 10px;
+  border: 2px solid var(--iron);
+  background: color-mix(in srgb, var(--paper) 82%, transparent);
+  color: var(--iron);
+}
+
 .muscle {
   display: flex;
   flex-direction: column;
@@ -81,7 +89,6 @@ body {
 
 .scores {
   text-align: right;
-  color: var(--iron);
 }
 
 #score {

@@ -6,6 +6,7 @@ import {
   muscleMultiplier,
   muscleRank,
   muscleRankTitle,
+  proteinFloaterText,
   proteinPoints,
   survivalScore,
 } from '../src/game/scoring'
@@ -21,6 +22,11 @@ test('protein points grow with combo and muscle', () => {
   assert.equal(proteinPoints(0, 1), 80)
   assert.equal(proteinPoints(0, 2), 105)
   assert.equal(proteinPoints(8, 1), 160)
+})
+
+test('protein floater shows points and combo only', () => {
+  assert.equal(proteinFloaterText(80, 1), '+80')
+  assert.equal(proteinFloaterText(105, 2), '+105 ×2')
 })
 
 test('hirari points follow muscle', () => {

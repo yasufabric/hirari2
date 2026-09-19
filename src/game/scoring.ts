@@ -26,6 +26,10 @@ export function proteinPoints(muscleLevel: number, combo: number): number {
   return Math.round((PROTEIN_SCORE + comboBonus) * muscleMultiplier(muscleLevel))
 }
 
+export function proteinFloaterText(points: number, combo: number): string {
+  return combo > 1 ? `+${points} ×${combo}` : `+${points}`
+}
+
 export function hirariPoints(muscleLevel: number): number {
   return Math.round(HIRARI_SCORE * muscleMultiplier(muscleLevel))
 }
