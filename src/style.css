@@ -1,12 +1,13 @@
 :root {
-  --whey: #e8dcc8;
-  --whey-deep: #C4AE8C;
+  --whey: #e2d4bc;
+  --whey-deep: #c4ae8c;
   --iron: #3b2416;
   --iron-soft: #5c3a28;
   --warning: #f5c518;
   --can: #1f6f4a;
   --blood: #c23b22;
   --paper: #f4ead8;
+  --line: color-mix(in srgb, var(--iron) 28%, transparent);
   --display: 'Dela Gothic One', 'Hiragino Mincho ProN', serif;
   --body: 'Zen Kaku Gothic New', 'Hiragino Sans', sans-serif;
   --lane-pad-height: 108px;
@@ -58,8 +59,8 @@ body {
 .muscle,
 .scores {
   padding: 8px 10px;
-  border: 2px solid var(--iron);
-  background: color-mix(in srgb, var(--paper) 82%, transparent);
+  border: 1px solid var(--line);
+  background: color-mix(in srgb, var(--paper) 70%, transparent);
   color: var(--iron);
 }
 
@@ -79,8 +80,8 @@ body {
 
 .muscle-track {
   height: 10px;
-  border: 2px solid var(--iron);
-  background: rgba(244, 234, 216, 0.55);
+  border: 1px solid var(--line);
+  background: rgba(244, 234, 216, 0.45);
   overflow: hidden;
 }
 
@@ -92,23 +93,29 @@ body {
   transition: width 160ms ease-out;
 }
 
-.scores {
-  text-align: right;
+.hud-scores {
+  position: relative;
+  flex: 0 0 auto;
 }
 
-.score-line {
-  display: flex;
-  align-items: baseline;
-  justify-content: flex-end;
-  gap: 6px;
-  min-height: 28px;
+.scores {
+  box-sizing: border-box;
+  display: grid;
+  justify-items: end;
+  row-gap: 4px;
+  grid-template-rows: auto 1.15em;
+  min-width: 7.5rem;
+  text-align: right;
 }
 
 #score {
   display: block;
+  min-width: 3.25em;
   font-family: var(--display);
   font-size: 28px;
   line-height: 1;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
 }
 
 #score.is-bump {
@@ -116,10 +123,15 @@ body {
 }
 
 #score-tick {
+  position: absolute;
+  right: calc(100% + 8px);
+  top: 10px;
   font-family: var(--display);
   font-size: 14px;
   line-height: 1;
   color: var(--can);
+  white-space: nowrap;
+  pointer-events: none;
 }
 
 #score-tick.is-on {
@@ -130,11 +142,17 @@ body {
   display: none;
 }
 
+#combo,
+#best-wrap {
+  grid-column: 1;
+  grid-row: 2;
+}
+
 #combo {
   display: block;
-  margin-top: 4px;
   font-family: var(--display);
-  font-size: 14px;
+  font-size: 12px;
+  line-height: 1.15;
   color: var(--can);
 }
 
@@ -142,27 +160,31 @@ body {
   display: none;
 }
 
+#combo:not([hidden]) ~ #best-wrap {
+  visibility: hidden;
+}
+
 #best-wrap {
   display: block;
-  margin-top: 4px;
   font-size: 12px;
   font-weight: 700;
+  line-height: 1.15;
 }
 
 #hint {
   position: absolute;
   left: 50%;
-  top: 34%;
-  bottom: auto;
+  top: auto;
+  bottom: calc(var(--lane-pad-height) + env(safe-area-inset-bottom) + 14px);
   transform: translateX(-50%);
   margin: 0;
   padding: 8px 16px;
-  border: 3px solid var(--iron);
-  background: var(--warning);
+  border: 1px solid var(--line);
+  background: color-mix(in srgb, var(--paper) 88%, transparent);
   text-align: center;
   font-family: var(--display);
-  font-size: 18px;
-  color: var(--iron);
+  font-size: 16px;
+  color: var(--iron-soft);
   pointer-events: none;
   z-index: 5;
   white-space: nowrap;
@@ -240,6 +262,9 @@ button:focus-visible {
   min-width: 0;
   min-height: 44px;
   padding: 8px 14px;
+  border-width: 1px;
+  border-color: var(--line);
+  background: color-mix(in srgb, var(--paper) 82%, transparent);
   font-size: 16px;
 }
 
@@ -253,8 +278,8 @@ button:focus-visible {
   grid-template-columns: 1fr 1fr 1fr;
   gap: 0;
   padding: 0 0 env(safe-area-inset-bottom);
-  background: color-mix(in srgb, var(--whey) 72%, var(--iron));
-  border-top: 3px solid var(--iron);
+  background: color-mix(in srgb, var(--whey-deep) 78%, var(--iron));
+  border-top: 1px solid var(--line);
 }
 
 #pads button {
@@ -263,9 +288,11 @@ button:focus-visible {
   min-height: var(--lane-pad-height);
   padding: 0;
   border: none;
-  border-right: 3px solid var(--iron);
+  border-right: 1px solid var(--line);
   border-radius: 0;
-  font-size: 22px;
+  background: color-mix(in srgb, var(--whey) 82%, var(--whey-deep));
+  color: var(--iron-soft);
+  font-size: 18px;
 }
 
 #pads button:last-child {
@@ -274,6 +301,7 @@ button:focus-visible {
 
 #pads button[aria-current='true'] {
   background: var(--paper);
+  color: var(--iron);
 }
 
 #mute[aria-pressed='true'] {
@@ -299,7 +327,7 @@ button:focus-visible {
 
 @keyframes score-bump {
   0% {
-    transform: scale(1.16);
+    transform: scale(1.06);
   }
   100% {
     transform: scale(1);

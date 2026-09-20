@@ -56,7 +56,6 @@ type Pop = { x: number; y: number; life: number }
 type Spark = { x: number; y: number; vx: number; vy: number; life: number }
 
 const HITSTOP_SEC = 10 / 60
-const HINT_SEC = 2.8
 const GHOST_LIFE = 0.18
 const POP_LIFE = 0.32
 const SPARK_LIFE = 0.28
@@ -92,7 +91,6 @@ export class Game {
   private shake = 0
   private matFlashLane = -1
   private matFlash = 0
-  private hintLeft = 0
   private reduceMotion = false
   private flex = 0
   private hirariCount = 0
@@ -167,11 +165,10 @@ export class Game {
     this.hitstop = 0
     this.flash = 0
     this.shake = 0
-    this.hintLeft = HINT_SEC
     this.bgm.start()
     this.bgm.setDimmed(false)
     this.applyMute()
-    this.chrome.hint.hidden = false
+    this.chrome.hint.hidden = true
     this.syncChrome()
   }
 
@@ -219,7 +216,6 @@ export class Game {
     this.player.moveTo(next)
     this.matFlashLane = next
     this.matFlash = MAT_FLASH_SEC
-    this.hintLeft = 0
     this.chrome.hint.hidden = true
   }
 
@@ -271,10 +267,6 @@ export class Game {
 
     this.elapsed += dt
     this.score += survivalScore(dt, this.player.muscleLevel)
-    if (this.hintLeft > 0) {
-      this.hintLeft -= dt
-      if (this.hintLeft <= 0) this.chrome.hint.hidden = true
-    }
 
     const speed = BASE_OBSTACLE_SPEED + this.elapsed * OBSTACLE_SPEED_GROWTH
 
@@ -451,7 +443,7 @@ export class Game {
     let ox = 0
     let oy = 0
     if (!this.reduceMotion && this.shake > 0) {
-      const shakeAmt = this.shake * 7
+      const shakeAmt = this.shake * 4
       ox = (Math.random() * 2 - 1) * shakeAmt
       oy = (Math.random() * 2 - 1) * shakeAmt
     }
@@ -468,8 +460,8 @@ export class Game {
     ctx.fillRect(0, 0, this.width, this.height)
 
     ctx.strokeStyle = IRON
-    ctx.globalAlpha = 0.22
-    ctx.lineWidth = 2
+    ctx.globalAlpha = 0.1
+    ctx.lineWidth = 1.5
     for (let i = 0; i < this.laneXPositions.length; i++) {
       const x = this.laneXPositions[i]
       ctx.beginPath()
@@ -514,7 +506,7 @@ export class Game {
 
     if (this.flash > 0) {
       ctx.fillStyle = BLOOD
-      ctx.globalAlpha = this.flash * 0.38
+      ctx.globalAlpha = this.flash * 0.2
       ctx.fillRect(0, 0, this.width, this.height)
       ctx.globalAlpha = 1
     }
@@ -537,7 +529,7 @@ export class Game {
       const top = Math.max(0, obstacle.y)
       const grad = ctx.createLinearGradient(0, top, 0, this.playerY)
       grad.addColorStop(0, 'rgba(214, 58, 34, 0)')
-      grad.addColorStop(1, `rgba(214, 58, 34, ${0.18 * t})`)
+      grad.addColorStop(1, `rgba(214, 58, 34, ${0.1 * t})`)
       ctx.fillStyle = grad
       ctx.fillRect(x - w / 2, top, w, Math.max(0, this.playerY - top))
     }
@@ -568,7 +560,7 @@ export class Game {
       ctx.fill()
       ctx.stroke()
       if (flash > 0) {
-        ctx.fillStyle = `rgba(245, 197, 24, ${0.55 * flash})`
+        ctx.fillStyle = `rgba(244, 234, 216, ${0.4 * flash})`
         ctx.fill()
       }
       if (lit) {
@@ -588,7 +580,7 @@ export class Game {
       if (t < 0.2) continue
       const x = this.laneXPositions[obstacle.lane]
       ctx.save()
-      ctx.globalAlpha = 0.22 + 0.38 * t
+      ctx.globalAlpha = 0.14 + 0.22 * t
       ctx.translate(x, matTop + MAT_HEIGHT / 2)
       ctx.scale(0.42 + 0.18 * t, 0.28 + 0.12 * t)
       ctx.beginPath()
