@@ -1,4 +1,4 @@
-import { CAN, CAN_LID, HAZARD, IRON, WARNING } from './palette'
+import { CAN, CAN_LID, HAZARD, IRON } from './palette'
 import { OBSTACLE_SIZE, PROTEIN_SIZE } from './config'
 
 export type FallingItemKind = 'additive' | 'protein'
@@ -47,9 +47,9 @@ export class Obstacle {
     const y = this.y
     ctx.save()
     ctx.translate(x, y)
-    ctx.shadowColor = 'rgba(59, 36, 22, 0.38)'
-    ctx.shadowBlur = 12
-    ctx.shadowOffsetY = 5
+    ctx.shadowColor = 'rgba(59, 36, 22, 0.28)'
+    ctx.shadowBlur = 8
+    ctx.shadowOffsetY = 4
 
     ctx.beginPath()
     ctx.moveTo(0, -half - 10)
@@ -70,23 +70,15 @@ export class Obstacle {
     ctx.fill()
     ctx.shadowColor = 'transparent'
     ctx.strokeStyle = IRON
-    ctx.lineWidth = 4.5
+    ctx.lineWidth = 3.5
     ctx.stroke()
 
+    ctx.fillStyle = CAN_LID
     ctx.beginPath()
-    ctx.arc(0, 1, Math.max(8, half * 0.42), 0, Math.PI * 2)
-    ctx.fillStyle = WARNING
-    ctx.fill()
-    ctx.strokeStyle = IRON
-    ctx.lineWidth = 2.4
-    ctx.stroke()
-
-    ctx.fillStyle = IRON
-    ctx.beginPath()
-    ctx.roundRect(-2.8, -half * 0.22, 5.6, half * 0.34, 1.8)
+    ctx.roundRect(-2.4, -half * 0.26, 4.8, half * 0.3, 1.5)
     ctx.fill()
     ctx.beginPath()
-    ctx.arc(0, half * 0.28, 2.8, 0, Math.PI * 2)
+    ctx.arc(0, half * 0.22, 2.4, 0, Math.PI * 2)
     ctx.fill()
 
     ctx.restore()
@@ -117,7 +109,7 @@ export class Obstacle {
     ctx.lineWidth = 2
     ctx.strokeRect(-w / 2 + 3, -h / 2 + 3, w - 6, 8)
 
-    ctx.fillStyle = WARNING
+    ctx.fillStyle = CAN_LID
     ctx.beginPath()
     ctx.roundRect(-w / 2 + 4, -3, w - 8, 10, 2)
     ctx.fill()

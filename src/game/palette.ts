@@ -1,4 +1,4 @@
-export const WHEY = '#E8DCC8'
+export const WHEY = '#E2D4BC'
 export const WHEY_DEEP = '#C4AE8C'
 export const IRON = '#3B2416'
 export const WARNING = '#F5C518'
