@@ -100,7 +100,11 @@ body {
 
 .scores {
   box-sizing: border-box;
-  min-width: 6.75rem;
+  display: grid;
+  justify-items: end;
+  row-gap: 4px;
+  grid-template-rows: auto 1.15em;
+  min-width: 7.5rem;
   text-align: right;
 }
 
@@ -138,11 +142,17 @@ body {
   display: none;
 }
 
+#combo,
+#best-wrap {
+  grid-column: 1;
+  grid-row: 2;
+}
+
 #combo {
   display: block;
-  margin-top: 4px;
   font-family: var(--display);
-  font-size: 14px;
+  font-size: 12px;
+  line-height: 1.15;
   color: var(--can);
 }
 
@@ -150,18 +160,22 @@ body {
   display: none;
 }
 
+#combo:not([hidden]) ~ #best-wrap {
+  visibility: hidden;
+}
+
 #best-wrap {
   display: block;
-  margin-top: 4px;
   font-size: 12px;
   font-weight: 700;
+  line-height: 1.15;
 }
 
 #hint {
   position: absolute;
   left: 50%;
-  top: 34%;
-  bottom: auto;
+  top: auto;
+  bottom: calc(var(--lane-pad-height) + env(safe-area-inset-bottom) + 14px);
   transform: translateX(-50%);
   margin: 0;
   padding: 8px 16px;

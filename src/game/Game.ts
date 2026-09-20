@@ -56,7 +56,6 @@ type Pop = { x: number; y: number; life: number }
 type Spark = { x: number; y: number; vx: number; vy: number; life: number }
 
 const HITSTOP_SEC = 10 / 60
-const HINT_SEC = 2.8
 const GHOST_LIFE = 0.18
 const POP_LIFE = 0.32
 const SPARK_LIFE = 0.28
@@ -92,7 +91,6 @@ export class Game {
   private shake = 0
   private matFlashLane = -1
   private matFlash = 0
-  private hintLeft = 0
   private reduceMotion = false
   private flex = 0
   private hirariCount = 0
@@ -167,11 +165,10 @@ export class Game {
     this.hitstop = 0
     this.flash = 0
     this.shake = 0
-    this.hintLeft = HINT_SEC
     this.bgm.start()
     this.bgm.setDimmed(false)
     this.applyMute()
-    this.chrome.hint.hidden = false
+    this.chrome.hint.hidden = true
     this.syncChrome()
   }
 
@@ -219,7 +216,6 @@ export class Game {
     this.player.moveTo(next)
     this.matFlashLane = next
     this.matFlash = MAT_FLASH_SEC
-    this.hintLeft = 0
     this.chrome.hint.hidden = true
   }
 
@@ -271,10 +267,6 @@ export class Game {
 
     this.elapsed += dt
     this.score += survivalScore(dt, this.player.muscleLevel)
-    if (this.hintLeft > 0) {
-      this.hintLeft -= dt
-      if (this.hintLeft <= 0) this.chrome.hint.hidden = true
-    }
 
     const speed = BASE_OBSTACLE_SPEED + this.elapsed * OBSTACLE_SPEED_GROWTH
 
