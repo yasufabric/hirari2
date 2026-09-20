@@ -14,6 +14,7 @@ const chrome: GameChrome = {
   start: must<HTMLButtonElement>('start'),
   restart: must<HTMLButtonElement>('restart'),
   score: must('score'),
+  scoreTick: must('score-tick'),
   best: must('best'),
   combo: must('combo'),
   muscleFill: must('muscle-fill'),

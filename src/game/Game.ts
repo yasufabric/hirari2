@@ -20,13 +20,13 @@ import { Player, playerDrawScale } from './Player'
 import { RockBgm } from './RockBgm'
 import { Sfx } from './Sfx'
 import { attachKeyboard, attachLanePads, attachPlayfieldTap } from './input'
-import { BLOOD, CAN, HAZARD, IRON, MAT, MAT_LIT, WARNING, WHEY, WHEY_DEEP } from './palette'
+import { BLOOD, HAZARD, IRON, MAT, MAT_LIT, WARNING, WHEY, WHEY_DEEP } from './palette'
 import {
   hirariPoints,
   isAdjacentHirari,
   muscleRank,
   muscleRankTitle,
-  proteinFloaterText,
+  proteinHudTick,
   proteinPoints,
   survivalScore,
 } from './scoring'
@@ -38,6 +38,7 @@ export type GameChrome = {
   start: HTMLButtonElement
   restart: HTMLButtonElement
   score: HTMLElement
+  scoreTick: HTMLElement
   best: HTMLElement
   combo: HTMLElement
   muscleFill: HTMLElement
@@ -52,15 +53,14 @@ export type GameChrome = {
 
 type Ghost = { x: number; y: number; muscle: number; life: number }
 type Pop = { x: number; y: number; life: number }
-type Floater = { x: number; y: number; life: number; text: string; color: string }
 type Spark = { x: number; y: number; vx: number; vy: number; life: number }
 
 const HITSTOP_SEC = 10 / 60
 const HINT_SEC = 2.8
 const GHOST_LIFE = 0.18
 const POP_LIFE = 0.32
-const FLOAT_LIFE = 1.05
 const SPARK_LIFE = 0.28
+const SCORE_TICK_SEC = 0.55
 const MAT_FLASH_SEC = 0.22
 const FLEX_SEC = 0.22
 const WARN_DISTANCE = 280
@@ -99,10 +99,11 @@ export class Game {
   private proteinCombo = 0
   private newBest = false
   private muted = false
+  private scoreTick = ''
+  private scoreTickLeft = 0
 
   private ghosts: Ghost[] = []
   private pops: Pop[] = []
-  private floaters: Floater[] = []
   private sparks: Spark[] = []
 
   constructor(
@@ -232,8 +233,10 @@ export class Game {
     this.player.muscleLevel = 0
     this.ghosts = []
     this.pops = []
-    this.floaters = []
     this.sparks = []
+    this.scoreTick = ''
+    this.scoreTickLeft = 0
+    this.clearScoreHudFx()
     this.matFlash = 0
     this.matFlashLane = -1
     this.flex = 0
@@ -303,9 +306,11 @@ export class Game {
     this.pops = this.pops
       .map((p) => ({ ...p, life: p.life - dt }))
       .filter((p) => p.life > 0)
-    this.floaters = this.floaters
-      .map((f) => ({ ...f, life: f.life - dt }))
-      .filter((f) => f.life > 0)
+    this.scoreTickLeft = Math.max(0, this.scoreTickLeft - dt)
+    if (this.scoreTickLeft <= 0 && this.scoreTick) {
+      this.scoreTick = ''
+      this.clearScoreHudFx()
+    }
     this.sparks = this.sparks
       .map((s) => ({
         ...s,
@@ -353,13 +358,7 @@ export class Game {
               y: obstacle.y,
               life: POP_LIFE,
             })
-            this.floaters.push({
-              x: this.laneXPositions[obstacle.lane],
-              y: obstacle.y - 18,
-              life: FLOAT_LIFE,
-              text: proteinFloaterText(points, this.proteinCombo),
-              color: CAN,
-            })
+            this.flashScoreHud(proteinHudTick(points))
             this.flex = this.reduceMotion ? 0 : FLEX_SEC
             this.sfx.collect()
           }
@@ -512,7 +511,6 @@ export class Game {
     )
     this.drawPops(ctx)
     this.drawSparks(ctx)
-    this.drawFloaters(ctx)
 
     if (this.flash > 0) {
       ctx.fillStyle = BLOOD
@@ -640,23 +638,23 @@ export class Game {
     }
   }
 
-  private drawFloaters(ctx: CanvasRenderingContext2D): void {
-    for (const floater of this.floaters) {
-      const t = Math.max(0, floater.life / FLOAT_LIFE)
-      const y = floater.y - (1 - t) * 28
-      ctx.save()
-      ctx.globalAlpha = t
-      ctx.font = '700 22px "Dela Gothic One", sans-serif'
-      ctx.textAlign = 'center'
-      ctx.textBaseline = 'middle'
-      ctx.lineJoin = 'round'
-      ctx.strokeStyle = IRON
-      ctx.lineWidth = 4
-      ctx.strokeText(floater.text, floater.x, y)
-      ctx.fillStyle = floater.color
-      ctx.fillText(floater.text, floater.x, y)
-      ctx.restore()
-    }
+  private flashScoreHud(text: string): void {
+    this.scoreTick = text
+    this.scoreTickLeft = SCORE_TICK_SEC
+    const score = this.chrome.score
+    const tick = this.chrome.scoreTick
+    tick.textContent = text
+    tick.hidden = false
+    score.classList.remove('is-bump')
+    tick.classList.remove('is-on')
+    void score.offsetWidth
+    score.classList.add('is-bump')
+    tick.classList.add('is-on')
+  }
+
+  private clearScoreHudFx(): void {
+    this.chrome.score.classList.remove('is-bump')
+    this.chrome.scoreTick.classList.remove('is-on')
   }
 
   private syncChrome(): void {
@@ -664,6 +662,8 @@ export class Game {
     this.chrome.over.hidden = this.status !== 'gameover'
     this.chrome.hud.hidden = this.status !== 'playing' && !this.stunned
     this.chrome.score.textContent = String(Math.floor(this.score))
+    this.chrome.scoreTick.textContent = this.scoreTick
+    this.chrome.scoreTick.hidden = this.scoreTick.length === 0
     this.chrome.best.textContent = String(this.bestScore)
     this.chrome.combo.hidden = this.proteinCombo < 2
     this.chrome.combo.textContent = `プロテイン ×${this.proteinCombo}`
