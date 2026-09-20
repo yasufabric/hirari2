@@ -129,7 +129,11 @@ export class Game {
     window.visualViewport?.addEventListener('resize', () => this.resize())
     window.visualViewport?.addEventListener('scroll', () => this.resize())
     attachLanePads(this.chrome.pads, (lane) => this.goToLane(lane))
-    attachPlayfieldTap(this.canvas, (lane) => this.goToLane(lane))
+    attachPlayfieldTap(
+      this.canvas,
+      (lane) => this.goToLane(lane),
+      (direction) => this.handleMove(direction),
+    )
     attachKeyboard(
       (direction) => this.handleMove(direction),
       () => this.handleConfirm(),
