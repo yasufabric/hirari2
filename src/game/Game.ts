@@ -14,7 +14,7 @@ import {
   SPAWN_INTERVAL_DECAY_PER_SEC,
 } from './config'
 import type { GameStatus } from './GameState'
-import { matTopY, playerStandY } from './layout'
+import { matTopY, padObstruction, playerStandY, stageBox } from './layout'
 import { Obstacle } from './Obstacle'
 import { Player, playerDrawScale } from './Player'
 import { RockBgm } from './RockBgm'
@@ -123,7 +123,12 @@ export class Game {
     this.reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
     this.resize()
     window.addEventListener('resize', () => this.resize())
-    window.addEventListener('orientationchange', () => this.resize())
+    window.addEventListener('orientationchange', () => {
+      this.resize()
+      requestAnimationFrame(() => this.resize())
+    })
+    window.visualViewport?.addEventListener('resize', () => this.resize())
+    window.visualViewport?.addEventListener('scroll', () => this.resize())
     attachLanePads(this.chrome.pads, (lane) => this.goToLane(lane))
     attachPlayfieldTap(this.canvas, (lane) => this.goToLane(lane))
     attachKeyboard(
@@ -170,18 +175,28 @@ export class Game {
   }
 
   private resize(): void {
+    const frame = stageBox(window)
     this.dpr = Math.min(window.devicePixelRatio || 1, 2)
-    this.width = window.innerWidth
-    this.height = window.innerHeight
-    this.canvas.width = this.width * this.dpr
-    this.canvas.height = this.height * this.dpr
+    this.width = frame.width
+    this.height = frame.height
+    this.canvas.width = Math.round(this.width * this.dpr)
+    this.canvas.height = Math.round(this.height * this.dpr)
     this.ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0)
+
+    const stage = this.canvas.parentElement
+    if (stage) {
+      stage.style.top = `${frame.offsetTop}px`
+      stage.style.left = `${frame.offsetLeft}px`
+      stage.style.width = `${this.width}px`
+      stage.style.height = `${this.height}px`
+    }
 
     this.laneXPositions = Array.from(
       { length: LANE_COUNT },
       (_, i) => (this.width * (i + 1)) / (LANE_COUNT + 1),
     )
-    const padH = this.chrome.pads.getBoundingClientRect().height
+    const padsTop = this.chrome.pads.getBoundingClientRect().top - frame.offsetTop
+    const padH = padObstruction(this.height, padsTop)
     this.playerY = playerStandY(this.height, padH, playerDrawScale(this.laneHalfPx()))
     this.player.displayX = this.laneXPositions[this.player.lane]
   }

@@ -2,7 +2,7 @@ export const LANE_COUNT = 3
 
 export const PLAYER_FOOT_Y = 59
 export const MAT_HEIGHT = 12
-export const MAT_ABOVE_PADS = 10
+export const MAT_ABOVE_PADS = 20
 export const PLAYER_RADIUS = 24
 export const PLAYER_EASE = 14 // higher = snappier follow toward the target lane
 export const PLAYER_DRAW_SCALE_CAP = 0.7
