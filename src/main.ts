@@ -23,6 +23,7 @@ const chrome: GameChrome = {
   overHirari: must('over-hirari'),
   hint: must('hint'),
   mute: must<HTMLButtonElement>('mute'),
+  time: must('time'),
   pads: must('pads'),
   padButtons: [...must('pads').querySelectorAll<HTMLButtonElement>('[data-lane]')],
 }

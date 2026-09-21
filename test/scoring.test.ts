@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import {
+  formatSurvivalTime,
   hirariPoints,
   isAdjacentHirari,
   muscleMultiplier,
@@ -37,6 +38,15 @@ test('hirari points follow muscle', () => {
 test('survival score uses the muscle multiplier', () => {
   assert.equal(survivalScore(1, 0), 6)
   assert.equal(survivalScore(1, 8), 12)
+})
+
+test('survival time stays compact on the HUD chip', () => {
+  assert.equal(formatSurvivalTime(0), '0:00')
+  assert.equal(formatSurvivalTime(5.9), '0:05')
+  assert.equal(formatSurvivalTime(61), '1:01')
+  assert.equal(formatSurvivalTime(600), '10:00')
+  assert.equal(formatSurvivalTime(Number.NaN), '0:00')
+  assert.equal(formatSurvivalTime(-3), '0:00')
 })
 
 test('hirari only counts adjacent passed additives', () => {

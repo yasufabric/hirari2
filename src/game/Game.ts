@@ -22,6 +22,7 @@ import { Sfx } from './Sfx'
 import { attachKeyboard, attachLanePads, attachPlayfieldTap } from './input'
 import { BLOOD, HAZARD, IRON, MAT, MAT_LIT, WARNING, WHEY, WHEY_DEEP } from './palette'
 import {
+  formatSurvivalTime,
   hirariPoints,
   isAdjacentHirari,
   muscleRank,
@@ -47,6 +48,7 @@ export type GameChrome = {
   overHirari: HTMLElement
   hint: HTMLElement
   mute: HTMLButtonElement
+  time: HTMLElement
   pads: HTMLElement
   padButtons: HTMLButtonElement[]
 }
@@ -668,7 +670,8 @@ export class Game {
     this.chrome.overRank.textContent = rank
     const bestBit = this.newBest ? `いちばん 更新 ${this.bestScore}` : `いちばん ${this.bestScore}`
     this.chrome.overScore.textContent = `今回 ${Math.floor(this.score)}  /  ${bestBit}`
-    this.chrome.overHirari.textContent = `ひらり ${this.hirariCount}かい`
+    this.chrome.overHirari.textContent = `ひらり ${this.hirariCount}かい  /  タイム ${formatSurvivalTime(this.elapsed)}`
+    this.chrome.time.textContent = formatSurvivalTime(this.elapsed)
     this.chrome.mute.setAttribute('aria-pressed', this.muted ? 'true' : 'false')
     this.chrome.mute.textContent = this.muted ? 'ミュート' : 'おと'
     this.chrome.mute.setAttribute('aria-label', this.muted ? '音を出す' : '音を消す')
