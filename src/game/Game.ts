@@ -705,7 +705,7 @@ export class Game {
     this.chrome.overHirari.textContent = `ひらり ${this.hirariCount}かい`
     this.chrome.pause.hidden = !canTogglePause(this.status, this.stunned) && !this.paused
     this.chrome.pause.setAttribute('aria-pressed', this.paused ? 'true' : 'false')
-    this.chrome.pause.textContent = this.paused ? 'つづける' : 'タイム'
+    this.chrome.pause.textContent = this.paused ? 'つづける' : 'ポーズ'
     this.chrome.pause.setAttribute('aria-label', this.paused ? '再開する' : '一時停止')
     this.chrome.mute.setAttribute('aria-pressed', this.muted ? 'true' : 'false')
     this.chrome.mute.textContent = this.muted ? 'ミュート' : 'おと'
