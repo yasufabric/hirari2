@@ -13,7 +13,7 @@ import {
   PROTEIN_SPAWN_CHANCE,
   SPAWN_INTERVAL_DECAY_PER_SEC,
 } from './config'
-import type { GameStatus } from './GameState'
+import { canControlPlayer, canTogglePause, type GameStatus } from './GameState'
 import { matTopY, padObstruction, playerStandY, stageBox } from './layout'
 import { Obstacle } from './Obstacle'
 import { Player, playerDrawScale } from './Player'
@@ -22,7 +22,6 @@ import { Sfx } from './Sfx'
 import { attachKeyboard, attachLanePads, attachPlayfieldTap } from './input'
 import { BLOOD, HAZARD, IRON, MAT, MAT_LIT, WARNING, WHEY, WHEY_DEEP } from './palette'
 import {
-  formatSurvivalTime,
   hirariPoints,
   isAdjacentHirari,
   muscleRank,
@@ -36,8 +35,10 @@ export type GameChrome = {
   hud: HTMLElement
   ready: HTMLElement
   over: HTMLElement
+  paused: HTMLElement
   start: HTMLButtonElement
   restart: HTMLButtonElement
+  resume: HTMLButtonElement
   score: HTMLElement
   scoreTick: HTMLElement
   best: HTMLElement
@@ -48,7 +49,7 @@ export type GameChrome = {
   overHirari: HTMLElement
   hint: HTMLElement
   mute: HTMLButtonElement
-  time: HTMLElement
+  pause: HTMLButtonElement
   pads: HTMLElement
   padButtons: HTMLButtonElement[]
 }
@@ -99,6 +100,7 @@ export class Game {
   private proteinCombo = 0
   private newBest = false
   private muted = false
+  private paused = false
   private scoreTick = ''
   private scoreTickLeft = 0
 
@@ -143,12 +145,38 @@ export class Game {
     this.chrome.start.addEventListener('click', () => this.start())
     this.chrome.restart.addEventListener('click', () => this.start())
     this.chrome.mute.addEventListener('click', () => this.toggleMute())
+    this.chrome.pause.addEventListener('click', () => this.togglePause())
+    this.chrome.resume.addEventListener('click', () => this.setPaused(false))
     this.syncChrome()
     requestAnimationFrame(this.loop)
   }
 
   private handleConfirm(): void {
-    if (this.status === 'ready' || this.status === 'gameover') this.start()
+    switch (this.status) {
+      case 'ready':
+      case 'gameover':
+        this.start()
+        return
+      case 'playing':
+        if (this.paused) this.setPaused(false)
+        return
+      default: {
+        const _exhaustive: never = this.status
+        throw new Error(`Unhandled game status: ${_exhaustive}`)
+      }
+    }
+  }
+
+  private togglePause(): void {
+    if (!canTogglePause(this.status, this.stunned)) return
+    this.setPaused(!this.paused)
+  }
+
+  private setPaused(paused: boolean): void {
+    if (paused && !canTogglePause(this.status, this.stunned)) return
+    this.paused = paused
+    this.bgm.setDimmed(paused)
+    this.syncChrome()
   }
 
   private toggleMute(): void {
@@ -168,6 +196,7 @@ export class Game {
     this.reset()
     this.status = 'playing'
     this.stunned = false
+    this.paused = false
     this.hitstop = 0
     this.flash = 0
     this.shake = 0
@@ -210,7 +239,7 @@ export class Game {
   }
 
   private goToLane(lane: number): void {
-    if (this.status !== 'playing' || this.stunned) return
+    if (!canControlPlayer(this.status, this.stunned, this.paused)) return
     const next = Math.max(0, Math.min(LANE_COUNT - 1, lane))
     if (next === this.player.lane) return
     this.ghosts.push({
@@ -245,6 +274,7 @@ export class Game {
     this.hirariCount = 0
     this.proteinCombo = 0
     this.newBest = false
+    this.paused = false
   }
 
   private loop = (ts: number): void => {
@@ -257,6 +287,7 @@ export class Game {
   }
 
   private update(dt: number): void {
+    if (this.paused) return
     this.decayFx(dt)
     if (this.stunned) {
       this.hitstop -= dt
@@ -493,7 +524,7 @@ export class Game {
     }
 
     const bounce =
-      this.status === 'playing' && !this.stunned && !this.reduceMotion
+      this.status === 'playing' && !this.stunned && !this.paused && !this.reduceMotion
         ? Math.sin(this.elapsed * 7) * 3
         : 0
     const flex = this.reduceMotion ? 0 : this.flex / FLEX_SEC
@@ -658,6 +689,7 @@ export class Game {
   private syncChrome(): void {
     this.chrome.ready.hidden = this.status !== 'ready'
     this.chrome.over.hidden = this.status !== 'gameover'
+    this.chrome.paused.hidden = !this.paused
     this.chrome.hud.hidden = this.status !== 'playing' && !this.stunned
     this.chrome.score.textContent = String(Math.floor(this.score))
     this.chrome.scoreTick.textContent = this.scoreTick
@@ -670,8 +702,11 @@ export class Game {
     this.chrome.overRank.textContent = rank
     const bestBit = this.newBest ? `いちばん 更新 ${this.bestScore}` : `いちばん ${this.bestScore}`
     this.chrome.overScore.textContent = `今回 ${Math.floor(this.score)}  /  ${bestBit}`
-    this.chrome.overHirari.textContent = `ひらり ${this.hirariCount}かい  /  タイム ${formatSurvivalTime(this.elapsed)}`
-    this.chrome.time.textContent = formatSurvivalTime(this.elapsed)
+    this.chrome.overHirari.textContent = `ひらり ${this.hirariCount}かい`
+    this.chrome.pause.hidden = !canTogglePause(this.status, this.stunned) && !this.paused
+    this.chrome.pause.setAttribute('aria-pressed', this.paused ? 'true' : 'false')
+    this.chrome.pause.textContent = this.paused ? 'つづける' : 'タイム'
+    this.chrome.pause.setAttribute('aria-label', this.paused ? '再開する' : '一時停止')
     this.chrome.mute.setAttribute('aria-pressed', this.muted ? 'true' : 'false')
     this.chrome.mute.textContent = this.muted ? 'ミュート' : 'おと'
     this.chrome.mute.setAttribute('aria-label', this.muted ? '音を出す' : '音を消す')

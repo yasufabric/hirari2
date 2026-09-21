@@ -52,9 +52,14 @@
         <p id="over-hirari" class="lede"></p>
         <button type="button" id="restart">もういちど</button>
       </section>
+      <section id="paused" hidden>
+        <p class="kicker">ちょっと休憩</p>
+        <h1>タイム</h1>
+        <button type="button" id="resume">つづける</button>
+      </section>
       <div id="corner">
         <button type="button" id="mute" aria-pressed="false" aria-label="音を消す">おと</button>
-        <p id="time" role="status" aria-label="生存タイム">0:00</p>
+        <button type="button" id="pause" hidden aria-pressed="false" aria-label="一時停止">タイム</button>
       </div>
       <nav id="pads" aria-label="レーン">
         <button type="button" data-lane="0" aria-label="左レーン">左</button>
