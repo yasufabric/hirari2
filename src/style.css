@@ -11,6 +11,8 @@
   --display: 'Dela Gothic One', 'Hiragino Mincho ProN', serif;
   --body: 'Zen Kaku Gothic New', 'Hiragino Sans', sans-serif;
   --lane-pad-height: 108px;
+  --corner-width: 5.75rem;
+  --corner-gap: 8px;
 }
 
 html,
@@ -51,7 +53,8 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  padding: max(12px, env(safe-area-inset-top)) 96px 0 16px;
+  padding: max(12px, env(safe-area-inset-top))
+    calc(var(--corner-width) + max(12px, env(safe-area-inset-right)) + var(--corner-gap)) 0 16px;
   pointer-events: none;
   z-index: 2;
 }
@@ -261,34 +264,39 @@ button:focus-visible {
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  gap: 6px;
+  gap: 4px;
+  width: var(--corner-width);
   pointer-events: none;
 }
 
 #mute,
 #time {
   margin: 0;
-  min-width: 4.75rem;
-  min-height: 44px;
-  padding: 8px 12px;
+  min-width: 0;
+  width: 100%;
+  padding: 8px 8px;
   box-sizing: border-box;
   border: 1px solid var(--line);
   background: color-mix(in srgb, var(--paper) 82%, transparent);
   font-size: 16px;
   line-height: 1;
   text-align: center;
+  white-space: nowrap;
 }
 
 #mute {
+  min-height: 44px;
   pointer-events: auto;
 }
 
 #time {
   display: grid;
   place-items: center;
+  min-height: 32px;
   font-family: var(--display);
   font-variant-numeric: tabular-nums;
   color: var(--iron);
+  pointer-events: auto;
 }
 
 #pads {
