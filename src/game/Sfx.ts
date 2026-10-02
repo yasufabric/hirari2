@@ -25,25 +25,37 @@ export class Sfx {
 
     const osc = audio.createOscillator()
     const gain = audio.createGain()
-    osc.type = 'sine'
-    osc.frequency.setValueAtTime(140, now)
-    osc.frequency.exponentialRampToValueAtTime(48, now + 0.16)
-    gain.gain.setValueAtTime(0.2, now)
-    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.18)
+    osc.type = 'sawtooth'
+    osc.frequency.setValueAtTime(180, now)
+    osc.frequency.exponentialRampToValueAtTime(36, now + 0.22)
+    gain.gain.setValueAtTime(0.34, now)
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.26)
     osc.connect(gain)
     gain.connect(this.master)
     osc.start(now)
-    osc.stop(now + 0.2)
+    osc.stop(now + 0.28)
 
-    const bufferSize = audio.sampleRate * 0.12
+    const thud = audio.createOscillator()
+    const thudGain = audio.createGain()
+    thud.type = 'sine'
+    thud.frequency.setValueAtTime(70, now)
+    thud.frequency.exponentialRampToValueAtTime(28, now + 0.18)
+    thudGain.gain.setValueAtTime(0.28, now)
+    thudGain.gain.exponentialRampToValueAtTime(0.001, now + 0.2)
+    thud.connect(thudGain)
+    thudGain.connect(this.master)
+    thud.start(now)
+    thud.stop(now + 0.22)
+
+    const bufferSize = Math.floor(audio.sampleRate * 0.18)
     const buffer = audio.createBuffer(1, bufferSize, audio.sampleRate)
     const data = buffer.getChannelData(0)
     for (let i = 0; i < bufferSize; i += 1) data[i] = Math.random() * 2 - 1
     const noise = audio.createBufferSource()
     const noiseGain = audio.createGain()
     noise.buffer = buffer
-    noiseGain.gain.setValueAtTime(0.1, now)
-    noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.12)
+    noiseGain.gain.setValueAtTime(0.22, now)
+    noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.18)
     noise.connect(noiseGain)
     noiseGain.connect(this.master)
     noise.start(now)

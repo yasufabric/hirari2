@@ -9,8 +9,8 @@ export const PLAYER_DRAW_SCALE_CAP = 0.7
 export const PLAYER_BASE_REACH = 41
 export const MAX_MUSCLE_LEVEL = 8
 
-export const OBSTACLE_SIZE = 44
-export const PROTEIN_SIZE = 34
+export const OBSTACLE_SIZE = 52
+export const PROTEIN_SIZE = 42
 export const PROTEIN_SCORE = 80
 export const PROTEIN_COMBO_BONUS = 25
 export const PROTEIN_SPAWN_CHANCE = 0.42

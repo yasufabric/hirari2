@@ -58,7 +58,7 @@ type Ghost = { x: number; y: number; muscle: number; life: number }
 type Pop = { x: number; y: number; life: number }
 type Spark = { x: number; y: number; vx: number; vy: number; life: number }
 
-const HITSTOP_SEC = 10 / 60
+const HITSTOP_SEC = 16 / 60
 const GHOST_LIFE = 0.18
 const POP_LIFE = 0.32
 const SPARK_LIFE = 0.28
@@ -325,8 +325,8 @@ export class Game {
   }
 
   private decayFx(dt: number): void {
-    this.flash = Math.max(0, this.flash - dt * 4)
-    this.shake = Math.max(0, this.shake - dt * 5)
+    this.flash = Math.max(0, this.flash - dt * 2.6)
+    this.shake = Math.max(0, this.shake - dt * 3.2)
     this.matFlash = Math.max(0, this.matFlash - dt)
     this.flex = Math.max(0, this.flex - dt)
     this.ghosts = this.ghosts
@@ -430,12 +430,12 @@ export class Game {
   private beginDeath(): void {
     this.stunned = true
     this.hitstop = this.reduceMotion ? 0 : HITSTOP_SEC
-    this.flash = this.reduceMotion ? 0.35 : 1
-    this.shake = this.reduceMotion ? 0 : 1
+    this.flash = this.reduceMotion ? 0.5 : 1.25
+    this.shake = this.reduceMotion ? 0 : 1.35
     this.chrome.hint.hidden = true
     this.bgm.setDimmed(true)
     this.sfx.hit()
-    navigator.vibrate?.(40)
+    navigator.vibrate?.([30, 40, 60])
     const finalScore = Math.floor(this.score)
     this.newBest = finalScore > this.bestScore
     if (this.newBest) {
@@ -480,7 +480,7 @@ export class Game {
     let ox = 0
     let oy = 0
     if (!this.reduceMotion && this.shake > 0) {
-      const shakeAmt = this.shake * 4
+      const shakeAmt = this.shake * 7
       ox = (Math.random() * 2 - 1) * shakeAmt
       oy = (Math.random() * 2 - 1) * shakeAmt
     }
@@ -543,7 +543,7 @@ export class Game {
 
     if (this.flash > 0) {
       ctx.fillStyle = BLOOD
-      ctx.globalAlpha = this.flash * 0.2
+      ctx.globalAlpha = Math.min(0.55, this.flash * 0.32)
       ctx.fillRect(0, 0, this.width, this.height)
       ctx.globalAlpha = 1
     }

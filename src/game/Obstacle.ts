@@ -47,38 +47,40 @@ export class Obstacle {
     const y = this.y
     ctx.save()
     ctx.translate(x, y)
-    ctx.shadowColor = 'rgba(59, 36, 22, 0.28)'
-    ctx.shadowBlur = 8
-    ctx.shadowOffsetY = 4
+    ctx.shadowColor = 'rgba(224, 23, 10, 0.45)'
+    ctx.shadowBlur = 14
+    ctx.shadowOffsetY = 3
 
+    // cream halo for contrast on whey
     ctx.beginPath()
-    ctx.moveTo(0, -half - 10)
-    ctx.lineTo(half + 9, 0)
-    ctx.lineTo(0, half + 10)
-    ctx.lineTo(-half - 9, 0)
+    ctx.moveTo(0, -half - 12)
+    ctx.lineTo(half + 11, 0)
+    ctx.lineTo(0, half + 12)
+    ctx.lineTo(-half - 11, 0)
     ctx.closePath()
     ctx.fillStyle = CAN_LID
     ctx.fill()
 
     ctx.beginPath()
     ctx.moveTo(0, -half - 6)
-    ctx.lineTo(half + 5, 0)
+    ctx.lineTo(half + 6, 0)
     ctx.lineTo(0, half + 6)
-    ctx.lineTo(-half - 5, 0)
+    ctx.lineTo(-half - 6, 0)
     ctx.closePath()
     ctx.fillStyle = HAZARD
     ctx.fill()
     ctx.shadowColor = 'transparent'
     ctx.strokeStyle = IRON
-    ctx.lineWidth = 3.5
+    ctx.lineWidth = 4.5
     ctx.stroke()
 
+    // bang badge stays cream-on-red for quick read
     ctx.fillStyle = CAN_LID
     ctx.beginPath()
-    ctx.roundRect(-2.4, -half * 0.26, 4.8, half * 0.3, 1.5)
+    ctx.roundRect(-2.8, -half * 0.3, 5.6, half * 0.34, 1.5)
     ctx.fill()
     ctx.beginPath()
-    ctx.arc(0, half * 0.22, 2.4, 0, Math.PI * 2)
+    ctx.arc(0, half * 0.24, 2.8, 0, Math.PI * 2)
     ctx.fill()
 
     ctx.restore()
@@ -87,38 +89,44 @@ export class Obstacle {
   private drawProtein(ctx: CanvasRenderingContext2D, x: number, half: number): void {
     const y = this.y
     const w = this.size
-    const h = this.size + 10
+    const h = this.size + 12
     ctx.save()
     ctx.translate(x, y)
-    ctx.shadowColor = 'rgba(59, 36, 22, 0.3)'
-    ctx.shadowBlur = 10
-    ctx.shadowOffsetY = 4
+    ctx.shadowColor = 'rgba(22, 138, 82, 0.4)'
+    ctx.shadowBlur = 14
+    ctx.shadowOffsetY = 3
+
+    // bright rim behind the can so it pops on whey
+    ctx.fillStyle = CAN_LID
+    ctx.beginPath()
+    ctx.roundRect(-w / 2 - 3, -h / 2 - 3, w + 6, h + 6, 8)
+    ctx.fill()
 
     ctx.fillStyle = CAN
     ctx.beginPath()
-    ctx.roundRect(-w / 2, -h / 2, w, h, 6)
+    ctx.roundRect(-w / 2, -h / 2, w, h, 7)
     ctx.fill()
     ctx.shadowColor = 'transparent'
     ctx.strokeStyle = IRON
-    ctx.lineWidth = 3.5
+    ctx.lineWidth = 4.5
     ctx.stroke()
 
     ctx.fillStyle = CAN_LID
-    ctx.fillRect(-w / 2 + 3, -h / 2 + 3, w - 6, 8)
+    ctx.fillRect(-w / 2 + 3, -h / 2 + 3, w - 6, 10)
     ctx.strokeStyle = IRON
-    ctx.lineWidth = 2
-    ctx.strokeRect(-w / 2 + 3, -h / 2 + 3, w - 6, 8)
+    ctx.lineWidth = 2.5
+    ctx.strokeRect(-w / 2 + 3, -h / 2 + 3, w - 6, 10)
 
     ctx.fillStyle = CAN_LID
     ctx.beginPath()
-    ctx.roundRect(-w / 2 + 4, -3, w - 8, 10, 2)
+    ctx.roundRect(-w / 2 + 4, -4, w - 8, 12, 2)
     ctx.fill()
     ctx.strokeStyle = IRON
-    ctx.lineWidth = 2
+    ctx.lineWidth = 2.5
     ctx.stroke()
 
-    ctx.fillStyle = 'rgba(244, 234, 216, 0.35)'
-    ctx.fillRect(-w / 2 + 4, -h / 2 + 14, 5, h - 22)
+    ctx.fillStyle = 'rgba(255, 246, 228, 0.55)'
+    ctx.fillRect(-w / 2 + 5, -h / 2 + 16, 6, h - 26)
 
     ctx.restore()
   }
