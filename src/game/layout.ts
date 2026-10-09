@@ -1,4 +1,4 @@
-import { MAT_ABOVE_PADS, MAT_HEIGHT, PLAYER_FOOT_Y } from './config'
+import { MAT_ABOVE_PADS, MAT_HEIGHT, PLAYER_FOOT_Y, SHIBA_IDLE_HEIGHT_UNITS } from './config'
 
 export type ViewportLike = {
   innerWidth: number
@@ -69,4 +69,21 @@ export function matTopY(playerY: number, scale: number): number {
 
 export function matBottomY(playerY: number, scale: number): number {
   return matTopY(playerY, scale) + MAT_HEIGHT
+}
+
+/** Top of the idle shiba sprite (head) in canvas px. */
+export function playerHeadY(playerY: number, scale: number): number {
+  const s = scale > 0 ? scale : 1
+  return playerY + (PLAYER_FOOT_Y - SHIBA_IDLE_HEIGHT_UNITS) * s
+}
+
+/** CSS `bottom` (px) for the first-run hint: a small gap above the player's head. */
+export function controlHintBottom(viewHeight: number, playerY: number, scale: number, gap = 14): number {
+  const view = Number.isFinite(viewHeight) ? Math.max(0, viewHeight) : 0
+  return Math.max(0, view - playerHeadY(playerY, scale) + gap)
+}
+
+/** The first-run control hint shows until the stored "seen" flag is set. */
+export function shouldShowControlHint(stored: string | null): boolean {
+  return stored !== '1'
 }

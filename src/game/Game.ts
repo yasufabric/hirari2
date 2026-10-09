@@ -1,5 +1,7 @@
 import {
   BEST_SCORE_STORAGE_KEY,
+  CONTROL_HINT_SEC,
+  CONTROL_HINT_STORAGE_KEY,
   LANE_COUNT,
   MAX_MUSCLE_LEVEL,
   MAT_HEIGHT,
@@ -10,7 +12,14 @@ import {
 } from './config'
 import { maxBlockedLanes, obstacleSpeed, spawnIntervalMs } from './difficulty'
 import { canControlPlayer, canTogglePause, type GameStatus } from './GameState'
-import { matTopY, padObstruction, playerStandY, stageBox } from './layout'
+import {
+  controlHintBottom,
+  matTopY,
+  padObstruction,
+  playerStandY,
+  shouldShowControlHint,
+  stageBox,
+} from './layout'
 import { Obstacle } from './Obstacle'
 import { Player, playerDrawScale, selectPlayerPose, type PlayerPose } from './Player'
 import { RockBgm } from './RockBgm'
@@ -101,6 +110,7 @@ export class Game {
   private paused = false
   private scoreTick = ''
   private scoreTickLeft = 0
+  private controlHintLeft = 0
 
   private ghosts: Ghost[] = []
   private dotPattern: CanvasPattern | null = null
@@ -208,7 +218,7 @@ export class Game {
     this.bgm.setDimmed(false)
     this.applyMute()
     this.sfx.start()
-    this.chrome.hint.hidden = true
+    this.showControlHintIfFirstRun()
     this.syncChrome()
   }
 
@@ -237,6 +247,33 @@ export class Game {
     const padH = padObstruction(this.height, padsTop)
     this.playerY = playerStandY(this.height, padH, playerDrawScale(this.laneHalfPx()))
     this.player.displayX = this.laneXPositions[this.player.lane]
+    const hintBottom = controlHintBottom(this.height, this.playerY, playerDrawScale(this.laneHalfPx()))
+    this.chrome.hint.style.bottom = `${Math.round(hintBottom)}px`
+  }
+
+  private showControlHintIfFirstRun(): void {
+    let stored: string | null = null
+    try {
+      stored = localStorage.getItem(CONTROL_HINT_STORAGE_KEY)
+    } catch {
+      stored = null
+    }
+    const show = shouldShowControlHint(stored)
+    this.controlHintLeft = show ? CONTROL_HINT_SEC : 0
+    this.chrome.hint.hidden = !show
+  }
+
+  /** Hide the hint; `learned` marks it seen so later runs skip it. */
+  private dismissControlHint(learned: boolean): void {
+    if (this.chrome.hint.hidden) return
+    this.chrome.hint.hidden = true
+    this.controlHintLeft = 0
+    if (!learned) return
+    try {
+      localStorage.setItem(CONTROL_HINT_STORAGE_KEY, '1')
+    } catch {
+      // storage blocked (private mode / iframe): just hide for this run
+    }
   }
 
   private handleMove(direction: -1 | 1): void {
@@ -258,7 +295,7 @@ export class Game {
     this.sfx.move()
     this.matFlashLane = next
     this.matFlash = MAT_FLASH_SEC
-    this.chrome.hint.hidden = true
+    this.dismissControlHint(true)
   }
 
   private reset(): void {
@@ -311,6 +348,10 @@ export class Game {
     if (this.status !== 'playing') return
 
     this.elapsed += dt
+    if (this.controlHintLeft > 0) {
+      this.controlHintLeft -= dt
+      if (this.controlHintLeft <= 0) this.dismissControlHint(true)
+    }
     this.score += survivalScore(dt, this.player.muscleLevel)
 
     const speed = obstacleSpeed(this.elapsed)
@@ -437,7 +478,7 @@ export class Game {
     this.hitstop = this.reduceMotion ? 0 : HITSTOP_SEC
     this.flash = this.reduceMotion ? 0.5 : 1.25
     this.shake = this.reduceMotion ? 0 : 1.35
-    this.chrome.hint.hidden = true
+    this.dismissControlHint(false)
     this.bgm.setDimmed(true)
     this.sfx.hit()
     navigator.vibrate?.([30, 40, 60])

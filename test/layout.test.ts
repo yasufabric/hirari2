@@ -1,12 +1,15 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { MAT_ABOVE_PADS, MAT_HEIGHT, PLAYER_FOOT_Y } from '../src/game/config'
+import { MAT_ABOVE_PADS, MAT_HEIGHT, PLAYER_FOOT_Y, SHIBA_IDLE_HEIGHT_UNITS } from '../src/game/config'
 import {
+  controlHintBottom,
   matBottomY,
   matTopY,
   padObstruction,
   playerFootOffset,
+  playerHeadY,
   playerStandY,
+  shouldShowControlHint,
   stageBox,
   visibleFrame,
 } from '../src/game/layout'
@@ -83,4 +86,20 @@ test('iPhone 17 Safari keeps the lifter above the pads in the visible frame', ()
   assert.ok(matBottomY(playerY, scale) <= padsTop)
   assert.ok(footY < padsTop)
   assert.ok(playerY > 0)
+})
+
+test('control hint sits just above the shiba head', () => {
+  const scale = 0.7
+  const playerY = 600
+  const head = playerHeadY(playerY, scale)
+  assert.equal(head, playerY - (SHIBA_IDLE_HEIGHT_UNITS - PLAYER_FOOT_Y) * scale)
+  assert.ok(head < playerY)
+  assert.equal(controlHintBottom(844, playerY, scale), 844 - head + 14)
+  assert.equal(controlHintBottom(Number.NaN, playerY, scale), 0)
+})
+
+test('control hint shows only until the seen flag is stored', () => {
+  assert.equal(shouldShowControlHint(null), true)
+  assert.equal(shouldShowControlHint('0'), true)
+  assert.equal(shouldShowControlHint('1'), false)
 })
