@@ -152,21 +152,40 @@ body {
   position: absolute;
   left: 50%;
   top: auto;
-  bottom: calc(var(--lane-pad-height) + env(safe-area-inset-bottom) + 14px);
+  /* JS sets bottom to sit just above the shiba's head; this is the no-JS fallback */
+  bottom: calc(var(--lane-pad-height) + env(safe-area-inset-bottom) + 160px);
   transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 8px;
   margin: 0;
-  padding: 8px 18px;
+  padding: 6px 14px;
   border: 3px solid var(--ink);
   border-radius: 999px;
-  background: var(--paper);
+  background: color-mix(in srgb, var(--paper) 90%, transparent);
   box-shadow: 0 3px 0 var(--ink);
   text-align: center;
   font-family: var(--display);
-  font-size: 16px;
+  font-size: 14px;
+  line-height: 1.2;
   color: var(--ink);
   pointer-events: none;
   z-index: 5;
   white-space: nowrap;
+}
+
+.hint-arrow {
+  display: inline-block;
+  font-size: 12px;
+  color: var(--shiba);
+}
+
+.hint-arrow-l {
+  animation: hint-nudge-l 900ms ease-in-out infinite;
+}
+
+.hint-arrow-r {
+  animation: hint-nudge-r 900ms ease-in-out infinite;
 }
 
 #ready,
@@ -451,7 +470,8 @@ button:focus-visible {
 
 @media (prefers-reduced-motion: reduce) {
   #score.is-bump,
-  #score-tick.is-on {
+  #score-tick.is-on,
+  .hint-arrow {
     animation: none;
   }
 }
@@ -473,5 +493,17 @@ button:focus-visible {
   100% {
     opacity: 0;
     transform: translateY(-8px);
+  }
+}
+
+@keyframes hint-nudge-l {
+  50% {
+    transform: translateX(-3px);
+  }
+}
+
+@keyframes hint-nudge-r {
+  50% {
+    transform: translateX(3px);
   }
 }

@@ -36,3 +36,6 @@ export const SCORE_PER_SECOND = 6
 
 export const BEST_SCORE_STORAGE_KEY = 'hirari2.bestScore'
 export const MUTE_STORAGE_KEY = 'hirari2.muted'
+export const CONTROL_HINT_STORAGE_KEY = 'hirari2.controlHintSeen'
+// First-run control hint: hide after the first lane move, or after this much play time.
+export const CONTROL_HINT_SEC = 4
