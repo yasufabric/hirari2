@@ -14,6 +14,7 @@ const chrome: GameChrome = {
   paused: must('paused'),
   start: must<HTMLButtonElement>('start'),
   restart: must<HTMLButtonElement>('restart'),
+  shareX: must<HTMLAnchorElement>('share-x'),
   resume: must<HTMLButtonElement>('resume'),
   score: must('score'),
   scoreTick: must('score-tick'),

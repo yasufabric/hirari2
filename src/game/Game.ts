@@ -27,6 +27,7 @@ import {
   proteinPoints,
   survivalScore,
 } from './scoring'
+import { xShareUrl } from './share'
 
 export type GameChrome = {
   hud: HTMLElement
@@ -35,6 +36,7 @@ export type GameChrome = {
   paused: HTMLElement
   start: HTMLButtonElement
   restart: HTMLButtonElement
+  shareX: HTMLAnchorElement
   resume: HTMLButtonElement
   score: HTMLElement
   scoreTick: HTMLElement
@@ -143,6 +145,10 @@ export class Game {
     )
     this.chrome.start.addEventListener('click', () => this.start())
     this.chrome.restart.addEventListener('click', () => this.start())
+    // Real link (user-gesture navigation) so it opens a new tab even inside the itch iframe.
+    for (const type of ['pointerdown', 'click'] as const) {
+      this.chrome.shareX.addEventListener(type, (e) => e.stopPropagation())
+    }
     this.chrome.mute.addEventListener('click', () => this.toggleMute())
     this.chrome.pause.addEventListener('click', () => this.togglePause())
     this.chrome.resume.addEventListener('click', () => this.setPaused(false))
@@ -766,6 +772,8 @@ export class Game {
     const bestBit = this.newBest ? `いちばん 更新 ${this.bestScore}` : `いちばん ${this.bestScore}`
     this.chrome.overScore.textContent = `今回 ${Math.floor(this.score)}  /  ${bestBit}`
     this.chrome.overHirari.textContent = `ひらり ${this.hirariCount}かい`
+    const shareHref = xShareUrl(Math.floor(this.score))
+    if (this.chrome.shareX.href !== shareHref) this.chrome.shareX.href = shareHref
     this.chrome.pause.hidden = !canTogglePause(this.status, this.stunned) && !this.paused
     this.chrome.pause.setAttribute('aria-pressed', this.paused ? 'true' : 'false')
     this.chrome.pause.textContent = this.paused ? 'つづける' : 'ポーズ'

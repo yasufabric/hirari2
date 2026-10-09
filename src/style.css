@@ -322,6 +322,38 @@ button:focus-visible {
   outline-offset: 3px;
 }
 
+.share-x {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  margin-top: 2px;
+  min-height: 44px;
+  max-width: 100%;
+  padding: 0 18px;
+  border: 3px solid var(--ink);
+  border-radius: 999px;
+  background: var(--paper);
+  box-shadow: 0 3px 0 var(--ink);
+  color: var(--ink);
+  font-family: var(--display);
+  font-size: 15px;
+  line-height: 1.2;
+  text-decoration: none;
+  white-space: nowrap;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.share-x:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 var(--ink);
+}
+
+.share-x:focus-visible {
+  outline: 3px solid var(--green);
+  outline-offset: 3px;
+}
+
 #corner {
   position: absolute;
   top: max(12px, env(safe-area-inset-top));
