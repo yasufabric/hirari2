@@ -36,7 +36,47 @@ import {
   proteinPoints,
   survivalScore,
 } from './scoring'
-import { xShareUrl } from './share'
+import {
+  isMobileDevice,
+  nativeShareData,
+  shareFailure,
+  shareLabel,
+  shareMode,
+  xShareUrl,
+  type ShareMode,
+} from './share'
+
+type PolicyDoc = Document & {
+  permissionsPolicy?: { allowsFeature(feature: string): boolean }
+  featurePolicy?: { allowsFeature(feature: string): boolean }
+}
+type UaDataNavigator = Navigator & { userAgentData?: { mobile?: boolean } }
+
+function detectShareMode(): ShareMode {
+  const nav = navigator as UaDataNavigator
+  const probe = nativeShareData(0)
+  let framed = false
+  try {
+    framed = window.self !== window.top
+  } catch {
+    framed = true
+  }
+  const doc = document as PolicyDoc
+  const policy = doc.permissionsPolicy ?? doc.featurePolicy
+  let framePolicy: boolean | null = null
+  try {
+    framePolicy = policy ? policy.allowsFeature('web-share') : null
+  } catch {
+    framePolicy = null
+  }
+  return shareMode({
+    hasShare: typeof nav.share === 'function',
+    canShare: typeof nav.canShare !== 'function' || nav.canShare(probe),
+    mobile: isMobileDevice(nav.userAgent, nav.maxTouchPoints ?? 0, nav.userAgentData?.mobile),
+    framed,
+    framePolicy,
+  })
+}
 
 export type GameChrome = {
   hud: HTMLElement
@@ -111,6 +151,8 @@ export class Game {
   private paused = false
   private scoreTick = ''
   private scoreTickLeft = 0
+  private shareMode: ShareMode = 'intent'
+  private sharing = false
   private controlHintLeft = 0
 
   private ghosts: Ghost[] = []
@@ -155,15 +197,44 @@ export class Game {
     )
     this.chrome.start.addEventListener('click', () => this.start())
     this.chrome.restart.addEventListener('click', () => this.start())
-    // Real link (user-gesture navigation) so it opens a new tab even inside the itch iframe.
-    for (const type of ['pointerdown', 'click'] as const) {
-      this.chrome.shareX.addEventListener(type, (e) => e.stopPropagation())
-    }
+    // Mobile: OS share sheet (hands off to the logged-in X app). Otherwise / on failure: the
+    // real <a target=_blank> X intent link, which opens a new tab even inside the itch iframe.
+    this.setShareMode(detectShareMode())
+    this.chrome.shareX.addEventListener('pointerdown', (e) => e.stopPropagation())
+    this.chrome.shareX.addEventListener('click', (e) => {
+      e.stopPropagation()
+      if (this.shareMode !== 'native') return
+      e.preventDefault()
+      this.shareNative()
+    })
     this.chrome.mute.addEventListener('click', () => this.toggleMute())
     this.chrome.pause.addEventListener('click', () => this.togglePause())
     this.chrome.resume.addEventListener('click', () => this.setPaused(false))
     this.syncChrome()
     requestAnimationFrame(this.loop)
+  }
+
+  private setShareMode(mode: ShareMode): void {
+    this.shareMode = mode
+    this.chrome.shareX.textContent = shareLabel(mode)
+  }
+
+  private shareNative(): void {
+    if (this.sharing) return
+    const score = Math.floor(this.score)
+    this.sharing = true
+    navigator
+      .share(nativeShareData(score))
+      .catch((err: unknown) => {
+        const name = err instanceof Error || err instanceof DOMException ? err.name : undefined
+        if (shareFailure(name) === 'cancelled') return
+        // Share sheet blocked (e.g. iframe without web-share): use the X link from now on.
+        this.setShareMode('intent')
+        window.open(xShareUrl(score), '_blank', 'noopener,noreferrer')
+      })
+      .finally(() => {
+        this.sharing = false
+      })
   }
 
   private handleConfirm(): void {
