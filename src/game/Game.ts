@@ -208,6 +208,7 @@ export class Game {
     this.bgm.start()
     this.bgm.setDimmed(false)
     this.applyMute()
+    this.sfx.start()
     this.chrome.hint.hidden = true
     this.syncChrome()
   }
@@ -255,6 +256,7 @@ export class Game {
       pose: next < this.player.lane ? 'left' : 'right',
     })
     this.player.moveTo(next)
+    this.sfx.move()
     this.matFlashLane = next
     this.matFlash = MAT_FLASH_SEC
     this.chrome.hint.hidden = true
@@ -393,7 +395,7 @@ export class Game {
             })
             this.flashScoreHud(proteinHudTick(points))
             this.flex = this.reduceMotion ? 0 : FLEX_SEC
-            this.sfx.collect()
+            this.sfx.collect(this.proteinCombo)
           }
           break
         case 'additive':
