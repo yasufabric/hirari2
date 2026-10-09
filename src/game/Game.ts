@@ -54,6 +54,7 @@ export type GameChrome = {
   overScore: HTMLElement
   overRank: HTMLElement
   overHirari: HTMLElement
+  overBest: HTMLElement
   hint: HTMLElement
   mute: HTMLButtonElement
   pause: HTMLButtonElement
@@ -487,6 +488,7 @@ export class Game {
     if (this.newBest) {
       this.bestScore = finalScore
       localStorage.setItem(BEST_SCORE_STORAGE_KEY, String(this.bestScore))
+      this.sfx.newBest(0.42)
     }
     if (this.hitstop <= 0) {
       this.stunned = false
@@ -810,7 +812,8 @@ export class Game {
     this.chrome.combo.textContent = `プロテイン ×${this.proteinCombo}`
     const rank = muscleRankTitle(muscleRank(this.player.muscleLevel))
     this.chrome.overRank.textContent = rank
-    const bestBit = this.newBest ? `いちばん 更新 ${this.bestScore}` : `いちばん ${this.bestScore}`
+    this.chrome.overBest.hidden = !this.newBest
+    const bestBit = `いちばん ${this.bestScore}`
     this.chrome.overScore.textContent = `今回 ${Math.floor(this.score)}  /  ${bestBit}`
     this.chrome.overHirari.textContent = `ひらり ${this.hirariCount}かい`
     const shareHref = xShareUrl(Math.floor(this.score))
