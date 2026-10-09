@@ -12,9 +12,10 @@ import { maxBlockedLanes, obstacleSpeed, spawnIntervalMs } from './difficulty'
 import { canControlPlayer, canTogglePause, type GameStatus } from './GameState'
 import { matTopY, padObstruction, playerStandY, stageBox } from './layout'
 import { Obstacle } from './Obstacle'
-import { Player, playerDrawScale } from './Player'
+import { Player, playerDrawScale, selectPlayerPose, type PlayerPose } from './Player'
 import { RockBgm } from './RockBgm'
 import { Sfx } from './Sfx'
+import { loadShibaSprites } from './sprites'
 import { attachKeyboard, attachLanePads, attachPlayfieldTap } from './input'
 import { BLOOD, HAZARD, IRON, MAT, MAT_LIT, WARNING, WHEY, WHEY_DEEP } from './palette'
 import {
@@ -50,7 +51,7 @@ export type GameChrome = {
   padButtons: HTMLButtonElement[]
 }
 
-type Ghost = { x: number; y: number; muscle: number; life: number }
+type Ghost = { x: number; y: number; muscle: number; life: number; pose: PlayerPose }
 type Pop = { x: number; y: number; life: number }
 type Spark = { x: number; y: number; vx: number; vy: number; life: number }
 
@@ -115,6 +116,7 @@ export class Game {
     this.bestScore = Number.isFinite(stored) ? stored : 0
     this.muted = localStorage.getItem(MUTE_STORAGE_KEY) === '1'
     this.player = new Player(Math.floor(LANE_COUNT / 2), 0)
+    this.player.sprites = loadShibaSprites()
     this.applyMute()
   }
 
@@ -243,6 +245,7 @@ export class Game {
       y: this.playerY,
       muscle: this.player.muscleLevel,
       life: GHOST_LIFE,
+      pose: next < this.player.lane ? 'left' : 'right',
     })
     this.player.moveTo(next)
     this.matFlashLane = next
@@ -258,6 +261,7 @@ export class Game {
     this.player.lane = Math.floor(LANE_COUNT / 2)
     this.player.displayX = this.laneXPositions[this.player.lane]
     this.player.muscleLevel = 0
+    this.player.clearMove()
     this.ghosts = []
     this.pops = []
     this.sparks = []
@@ -513,7 +517,17 @@ export class Game {
 
     const laneHalfPx = this.laneHalfPx()
     for (const ghost of this.ghosts) {
-      this.player.draw(ctx, ghost.y, ghost.life / GHOST_LIFE, ghost.x, ghost.muscle, laneHalfPx)
+      this.player.draw(
+        ctx,
+        ghost.y,
+        ghost.life / GHOST_LIFE,
+        ghost.x,
+        ghost.muscle,
+        laneHalfPx,
+        0,
+        0,
+        ghost.pose,
+      )
     }
 
     const bounce =
@@ -530,6 +544,12 @@ export class Game {
       laneHalfPx,
       bounce,
       flex,
+      selectPlayerPose({
+        stunned: this.stunned,
+        gameOver: this.status === 'gameover',
+        moveDir: this.player.moveDir,
+        dodgeLeft: this.player.dodgeLeft,
+      }),
     )
     this.drawPops(ctx)
     this.drawSparks(ctx)

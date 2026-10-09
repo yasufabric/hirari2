@@ -1,5 +1,33 @@
 import { BODY, BODY_LIGHT, CAN, HAIR, IRON, SHORTS, WARNING } from './palette'
-import { MAX_MUSCLE_LEVEL, PLAYER_BASE_REACH, PLAYER_DRAW_SCALE_CAP, PLAYER_EASE } from './config'
+import {
+  DODGE_POSE_SEC,
+  MAX_MUSCLE_LEVEL,
+  PLAYER_BASE_REACH,
+  PLAYER_DRAW_SCALE_CAP,
+  PLAYER_EASE,
+  PLAYER_FOOT_Y,
+  SHIBA_IDLE_HEIGHT_PX,
+  SHIBA_IDLE_HEIGHT_UNITS,
+} from './config'
+
+export type PlayerPose = 'idle' | 'left' | 'right' | 'dizzy'
+export type PlayerSprites = Record<PlayerPose, HTMLImageElement>
+
+export function selectPlayerPose(opts: {
+  stunned: boolean
+  gameOver: boolean
+  moveDir: -1 | 0 | 1
+  dodgeLeft: number
+}): PlayerPose {
+  if (opts.stunned || opts.gameOver) return 'dizzy'
+  if (opts.dodgeLeft > 0 && opts.moveDir < 0) return 'left'
+  if (opts.dodgeLeft > 0 && opts.moveDir > 0) return 'right'
+  return 'idle'
+}
+
+function spriteReady(img: HTMLImageElement | undefined): img is HTMLImageElement {
+  return !!img && img.complete && img.naturalWidth > 0
+}
 
 export function playerDrawScale(laneHalfPx: number): number {
   if (!(laneHalfPx > 0)) return PLAYER_DRAW_SCALE_CAP
@@ -10,6 +38,9 @@ export class Player {
   lane: number
   displayX: number
   muscleLevel = 0
+  moveDir: -1 | 0 | 1 = 0
+  dodgeLeft = 0
+  sprites: PlayerSprites | null = null
 
   constructor(initialLane: number, initialX: number) {
     this.lane = initialLane
@@ -17,13 +48,21 @@ export class Player {
   }
 
   moveTo(lane: number): void {
+    this.moveDir = lane < this.lane ? -1 : lane > this.lane ? 1 : 0
+    this.dodgeLeft = this.moveDir === 0 ? 0 : DODGE_POSE_SEC
     this.lane = lane
+  }
+
+  clearMove(): void {
+    this.moveDir = 0
+    this.dodgeLeft = 0
   }
 
   update(dt: number, laneXPositions: number[]): void {
     const targetX = laneXPositions[this.lane]
     const t = 1 - Math.exp(-PLAYER_EASE * dt)
     this.displayX += (targetX - this.displayX) * t
+    this.dodgeLeft = Math.max(0, this.dodgeLeft - dt)
   }
 
   draw(
@@ -35,7 +74,13 @@ export class Player {
     laneHalfPx: number,
     bounce = 0,
     flex = 0,
+    pose: PlayerPose = 'idle',
   ): void {
+    const sprite = this.sprites?.[pose]
+    if (spriteReady(sprite)) {
+      this.drawSprite(ctx, sprite, y, alpha, atX, muscle, laneHalfPx, bounce, flex)
+      return
+    }
     const power = muscle / MAX_MUSCLE_LEVEL
     const shoulder = 24 + power * 16
     const chestW = 18 + power * 12
@@ -57,6 +102,38 @@ export class Player {
     this.drawTorso(ctx, chestW, power)
     this.drawHead(ctx)
 
+    ctx.restore()
+  }
+
+  private drawSprite(
+    ctx: CanvasRenderingContext2D,
+    img: HTMLImageElement,
+    y: number,
+    alpha: number,
+    atX: number,
+    muscle: number,
+    laneHalfPx: number,
+    bounce: number,
+    flex: number,
+  ): void {
+    const power = muscle / MAX_MUSCLE_LEVEL
+    const s = playerDrawScale(laneHalfPx)
+    const unitsPerPx = SHIBA_IDLE_HEIGHT_UNITS / SHIBA_IDLE_HEIGHT_PX
+    const h = img.naturalHeight * unitsPerPx
+    const w = img.naturalWidth * unitsPerPx
+    // Muscle growth cue: a little wider as protein stacks up.
+    const bulk = 1 + power * 0.08
+    const stretch = 1 + flex * 0.1
+    const squash = 1 - flex * 0.05
+
+    ctx.save()
+    ctx.translate(atX, y + bounce)
+    ctx.scale(s * stretch * bulk, s * squash)
+    ctx.globalAlpha *= alpha
+    ctx.imageSmoothingEnabled = true
+    ctx.imageSmoothingQuality = 'high'
+    // Feet sit on PLAYER_FOOT_Y, exactly where the vector lifter stood.
+    ctx.drawImage(img, -w / 2, PLAYER_FOOT_Y - h, w, h)
     ctx.restore()
   }
 
