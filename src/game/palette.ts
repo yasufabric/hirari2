@@ -1,13 +1,23 @@
-export const WHEY = '#E2D4BC'
-export const WHEY_DEEP = '#C4AE8C'
+// Muscle Shiba look: cream paper, thick black ink, shiba orange, wristband green.
+export const CREAM = '#FFF9E9'
+export const CREAM_DEEP = '#F6E6C2'
+export const MUZZLE = '#FCE6B0'
+export const SHIBA = '#E88E26'
+export const SHIBA_DARK = '#C96C18'
+export const INK = '#1C1A18'
+export const GREEN = '#2F8A3A'
+export const GREEN_DARK = '#1F6B2A'
+
 export const IRON = '#3B2416'
 export const WARNING = '#F5C518'
 export const CAN = '#168A52'
 export const CAN_LID = '#FFF6E4'
 export const BLOOD = '#E0170A'
 export const HAZARD = '#FF2D14'
-export const MAT = '#D7C4A3'
-export const MAT_LIT = '#F3E2B8'
+export const HAZARD_DARK = '#C4140A'
+export const MAT = '#FFF3D6'
+export const MAT_LIT = SHIBA
+// Vector fallback lifter only (shown until the Shiba sprites load).
 export const BODY = '#C47A3A'
 export const BODY_LIGHT = '#E8B56A'
 export const SHORTS = '#4A2E1C'

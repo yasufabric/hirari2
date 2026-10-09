@@ -17,7 +17,7 @@ import { RockBgm } from './RockBgm'
 import { Sfx } from './Sfx'
 import { loadShibaSprites } from './sprites'
 import { attachKeyboard, attachLanePads, attachPlayfieldTap } from './input'
-import { BLOOD, HAZARD, IRON, MAT, MAT_LIT, WARNING, WHEY, WHEY_DEEP } from './palette'
+import { BLOOD, CREAM, CREAM_DEEP, GREEN, HAZARD, INK, MAT, MAT_LIT, SHIBA } from './palette'
 import {
   hirariPoints,
   isAdjacentHirari,
@@ -102,6 +102,7 @@ export class Game {
   private scoreTickLeft = 0
 
   private ghosts: Ghost[] = []
+  private dotPattern: CanvasPattern | null = null
   private pops: Pop[] = []
   private sparks: Spark[] = []
 
@@ -486,29 +487,7 @@ export class Game {
     ctx.setTransform(this.dpr, 0, 0, this.dpr, ox * this.dpr, oy * this.dpr)
     ctx.clearRect(-10, -10, this.width + 20, this.height + 20)
 
-    const sky = ctx.createLinearGradient(0, 0, 0, this.height)
-    sky.addColorStop(0, WHEY_DEEP)
-    sky.addColorStop(0.45, WHEY)
-    sky.addColorStop(1, WHEY)
-    ctx.fillStyle = sky
-    ctx.fillRect(0, 0, this.width, this.height)
-
-    ctx.strokeStyle = IRON
-    ctx.globalAlpha = 0.1
-    ctx.lineWidth = 1.5
-    for (let i = 0; i < this.laneXPositions.length; i++) {
-      const x = this.laneXPositions[i]
-      ctx.beginPath()
-      ctx.moveTo(x, 0)
-      ctx.lineTo(x, this.height)
-      ctx.stroke()
-    }
-    ctx.globalAlpha = 1
-
-    ctx.fillStyle = IRON
-    ctx.globalAlpha = 0.12
-    ctx.fillRect(0, 0, this.width, 28)
-    ctx.globalAlpha = 1
+    this.drawBackdrop(ctx)
 
     this.drawLaneWarnings(ctx)
     this.drawMats(ctx)
@@ -564,6 +543,68 @@ export class Game {
     ctx.restore()
   }
 
+  private drawBackdrop(ctx: CanvasRenderingContext2D): void {
+    ctx.fillStyle = CREAM
+    ctx.fillRect(0, 0, this.width, this.height)
+    const dots = this.backdropDots(ctx)
+    if (dots) {
+      ctx.fillStyle = dots
+      ctx.fillRect(0, 0, this.width, this.height)
+    }
+
+    // three rubber lanes, the current one warmed with shiba orange
+    const stripW = this.matWidth() * 0.9
+    for (let i = 0; i < this.laneXPositions.length; i++) {
+      const x = this.laneXPositions[i]
+      ctx.fillStyle = CREAM_DEEP
+      ctx.fillRect(x - stripW / 2, 0, stripW, this.height)
+      if (i === this.player.lane) {
+        ctx.fillStyle = SHIBA
+        ctx.globalAlpha = 0.1
+        ctx.fillRect(x - stripW / 2, 0, stripW, this.height)
+      }
+      ctx.globalAlpha = 0.16
+      ctx.strokeStyle = INK
+      ctx.lineWidth = 2
+      ctx.beginPath()
+      ctx.moveTo(x - stripW / 2, 0)
+      ctx.lineTo(x - stripW / 2, this.height)
+      ctx.moveTo(x + stripW / 2, 0)
+      ctx.lineTo(x + stripW / 2, this.height)
+      ctx.stroke()
+      ctx.globalAlpha = 0.1
+      ctx.setLineDash([10, 16])
+      ctx.beginPath()
+      ctx.moveTo(x, 0)
+      ctx.lineTo(x, this.height)
+      ctx.stroke()
+      ctx.setLineDash([])
+      ctx.globalAlpha = 1
+    }
+
+    // gym wall stripe behind the HUD
+    ctx.fillStyle = SHIBA
+    ctx.fillRect(0, 0, this.width, 10)
+    ctx.fillStyle = INK
+    ctx.fillRect(0, 10, this.width, 3)
+  }
+
+  private backdropDots(ctx: CanvasRenderingContext2D): CanvasPattern | null {
+    if (this.dotPattern) return this.dotPattern
+    const tile = document.createElement('canvas')
+    tile.width = 32
+    tile.height = 32
+    const t = tile.getContext('2d')
+    if (!t) return null
+    t.fillStyle = 'rgba(232, 142, 38, 0.13)'
+    t.beginPath()
+    t.arc(8, 8, 2.4, 0, Math.PI * 2)
+    t.arc(24, 24, 2.4, 0, Math.PI * 2)
+    t.fill()
+    this.dotPattern = ctx.createPattern(tile, 'repeat')
+    return this.dotPattern
+  }
+
   private approachWarn(obstacle: Obstacle): number {
     if (obstacle.kind !== 'additive' || obstacle.collected) return 0
     if (obstacle.y >= this.playerY) return 0
@@ -589,9 +630,9 @@ export class Game {
     const w = this.matWidth()
     const h = MAT_HEIGHT
     const y = matTopY(this.playerY, playerDrawScale(this.laneHalfPx()))
-    ctx.strokeStyle = IRON
-    ctx.globalAlpha = 0.16
-    ctx.lineWidth = 2
+    ctx.strokeStyle = INK
+    ctx.globalAlpha = 0.35
+    ctx.lineWidth = 3
     ctx.beginPath()
     ctx.moveTo(0, y)
     ctx.lineTo(this.width, y)
@@ -603,18 +644,27 @@ export class Game {
       const lit = i === this.player.lane
       const flash = i === this.matFlashLane ? this.matFlash / MAT_FLASH_SEC : 0
       ctx.fillStyle = lit ? MAT_LIT : MAT
-      ctx.strokeStyle = IRON
-      ctx.lineWidth = lit ? 3.5 : 2
+      ctx.strokeStyle = INK
+      ctx.lineWidth = lit ? 4 : 3
       ctx.beginPath()
       ctx.roundRect(x - w / 2, y, w, h, 6)
       ctx.fill()
       ctx.stroke()
       if (flash > 0) {
-        ctx.fillStyle = `rgba(244, 234, 216, ${0.4 * flash})`
+        ctx.fillStyle = `rgba(255, 249, 233, ${0.45 * flash})`
         ctx.fill()
       }
+      // little barbell plates on the mat ends
+      ctx.fillStyle = lit ? GREEN : INK
+      ctx.lineWidth = 2.5
+      for (const side of [-1, 1]) {
+        ctx.beginPath()
+        ctx.roundRect(x + side * (w / 2) - 4, y - 4, 8, h + 8, 3)
+        ctx.fill()
+        ctx.stroke()
+      }
       if (lit) {
-        ctx.fillStyle = 'rgba(59, 36, 22, 0.16)'
+        ctx.fillStyle = 'rgba(28, 26, 24, 0.2)'
         ctx.beginPath()
         ctx.ellipse(x, y + 3, 16, 4, 0, 0, Math.PI * 2)
         ctx.fill()
@@ -641,7 +691,7 @@ export class Game {
       ctx.closePath()
       ctx.fillStyle = HAZARD
       ctx.fill()
-      ctx.strokeStyle = IRON
+      ctx.strokeStyle = INK
       ctx.lineWidth = 3
       ctx.stroke()
       ctx.restore()
@@ -654,8 +704,8 @@ export class Game {
       ctx.save()
       ctx.translate(pop.x, pop.y)
       ctx.globalAlpha = t
-      ctx.strokeStyle = IRON
-      ctx.lineWidth = 2
+      ctx.strokeStyle = GREEN
+      ctx.lineWidth = 3.5
       const r = 10 + (1 - t) * 18
       ctx.beginPath()
       ctx.arc(0, 0, r, 0, Math.PI * 2)
@@ -669,9 +719,9 @@ export class Game {
       const t = Math.max(0, spark.life / SPARK_LIFE)
       ctx.save()
       ctx.globalAlpha = t
-      ctx.fillStyle = WARNING
-      ctx.strokeStyle = IRON
-      ctx.lineWidth = 1.6
+      ctx.fillStyle = SHIBA
+      ctx.strokeStyle = INK
+      ctx.lineWidth = 1.8
       ctx.beginPath()
       ctx.arc(spark.x, spark.y, 2.2 + t * 1.1, 0, Math.PI * 2)
       ctx.fill()
