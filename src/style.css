@@ -228,6 +228,7 @@ body {
 #paused[hidden],
 #hud[hidden],
 #hint[hidden],
+#over-best[hidden],
 #pause[hidden] {
   display: none;
 }
@@ -266,6 +267,22 @@ h1 {
     2px -2px 0 var(--ink),
     -2px -2px 0 var(--ink),
     0 6px 0 var(--ink);
+}
+
+.best-badge {
+  margin: -4px 0 -2px;
+  padding: 4px 14px;
+  border: 3px solid var(--ink);
+  border-radius: 999px;
+  background: var(--green);
+  box-shadow: 0 3px 0 var(--ink), 0 0 0 5px var(--shiba-light);
+  color: var(--paper);
+  font-family: var(--display);
+  font-size: 17px;
+  line-height: 1.2;
+  letter-spacing: 0.02em;
+  transform: rotate(-3deg);
+  animation: best-pop 420ms cubic-bezier(0.2, 1.4, 0.4, 1) 120ms both;
 }
 
 .lede,
@@ -471,7 +488,8 @@ button:focus-visible {
 @media (prefers-reduced-motion: reduce) {
   #score.is-bump,
   #score-tick.is-on,
-  .hint-arrow {
+  .hint-arrow,
+  .best-badge {
     animation: none;
   }
 }
@@ -505,5 +523,20 @@ button:focus-visible {
 @keyframes hint-nudge-r {
   50% {
     transform: translateX(3px);
+  }
+}
+
+@keyframes best-pop {
+  0% {
+    opacity: 0;
+    transform: rotate(-3deg) scale(0.4);
+  }
+  60% {
+    opacity: 1;
+    transform: rotate(-3deg) scale(1.12);
+  }
+  100% {
+    opacity: 1;
+    transform: rotate(-3deg) scale(1);
   }
 }

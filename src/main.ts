@@ -23,6 +23,7 @@ const chrome: GameChrome = {
   overScore: must('over-score'),
   overRank: must('over-rank'),
   overHirari: must('over-hirari'),
+  overBest: must('over-best'),
   hint: must('hint'),
   mute: must<HTMLButtonElement>('mute'),
   pause: must<HTMLButtonElement>('pause'),

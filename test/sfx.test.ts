@@ -7,6 +7,8 @@ import {
   comboFrequency,
   comboStep,
   moveTickRatio,
+  NEW_BEST_FANFARE_HZ,
+  NEW_BEST_FANFARE_STEP_SEC,
 } from '../src/game/sfxNotes'
 
 const near = (a: number, b: number) => assert.ok(Math.abs(a - b) < 0.05, `${a} ≈ ${b}`)
@@ -43,4 +45,13 @@ test('move tick pitch jitter stays within a semitone', () => {
   near(moveTickRatio(1), 1 + MOVE_TICK_JITTER)
   assert.equal(moveTickRatio(-5), moveTickRatio(0))
   assert.equal(moveTickRatio(Number.NaN), 1)
+})
+
+test('new-best fanfare is a short rising arpeggio', () => {
+  assert.ok(NEW_BEST_FANFARE_HZ.length >= 3)
+  for (let i = 1; i < NEW_BEST_FANFARE_HZ.length; i++) {
+    assert.ok(NEW_BEST_FANFARE_HZ[i] > NEW_BEST_FANFARE_HZ[i - 1])
+  }
+  const total = NEW_BEST_FANFARE_STEP_SEC * (NEW_BEST_FANFARE_HZ.length - 1)
+  assert.ok(total < 0.5, 'fanfare stays a blip, not a jingle')
 })

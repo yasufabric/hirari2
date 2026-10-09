@@ -1,4 +1,9 @@
-import { comboFrequency, moveTickRatio } from './sfxNotes'
+import {
+  comboFrequency,
+  moveTickRatio,
+  NEW_BEST_FANFARE_HZ,
+  NEW_BEST_FANFARE_STEP_SEC,
+} from './sfxNotes'
 
 /**
  * Procedural "strong and cute" SFX. Everything is synthesized with Web Audio; no files.
@@ -153,6 +158,16 @@ export function voiceStart(ctx: BaseAudioContext, out: AudioNode, t: number): vo
   tone(ctx, out, t, { type: 'triangle', freq: 987.77, peak: 0.12, decay: 0.12, delay: 0.06 })
 }
 
+/** New best: short bright arpeggio that lands on a sparkly top note. */
+export function voiceNewBest(ctx: BaseAudioContext, out: AudioNode, t: number): void {
+  NEW_BEST_FANFARE_HZ.forEach((freq, i) => {
+    const last = i === NEW_BEST_FANFARE_HZ.length - 1
+    const delay = i * NEW_BEST_FANFARE_STEP_SEC
+    tone(ctx, out, t, { type: 'triangle', freq, peak: last ? 0.14 : 0.11, decay: last ? 0.32 : 0.08, delay })
+    tone(ctx, out, t, { type: 'sine', freq: freq * 2, peak: 0.035, decay: last ? 0.22 : 0.06, delay })
+  })
+}
+
 /** Bus → soft limiter → mute gain. Returns [input, output]. */
 export function buildSfxChain(ctx: BaseAudioContext): [GainNode, GainNode] {
   const bus = ctx.createGain()
@@ -201,6 +216,11 @@ export class Sfx {
       this.lastMoveAt = t
       voiceMove(ctx, out, t, Math.random())
     })
+  }
+
+  /** Fanfare for a new best; `delay` lets it follow the hit "boing". */
+  newBest(delay = 0): void {
+    this.play((ctx, out, t) => voiceNewBest(ctx, out, t + delay))
   }
 
   hit(): void {

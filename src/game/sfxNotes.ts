@@ -28,3 +28,9 @@ export function moveTickRatio(random: number): number {
   const r = Number.isFinite(random) ? Math.min(Math.max(random, 0), 1) : 0.5
   return 1 + (r * 2 - 1) * MOVE_TICK_JITTER
 }
+
+/** New-best fanfare: a quick bright C major arpeggio up to C7 (Hz, in play order). */
+export const NEW_BEST_FANFARE_HZ = [1046.5, 1318.51, 1567.98, 2093] as const
+
+/** Gap between fanfare notes, in seconds. */
+export const NEW_BEST_FANFARE_STEP_SEC = 0.07
