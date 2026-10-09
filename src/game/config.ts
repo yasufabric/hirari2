@@ -8,6 +8,10 @@ export const PLAYER_EASE = 14 // higher = snappier follow toward the target lane
 export const PLAYER_DRAW_SCALE_CAP = 0.7
 export const PLAYER_BASE_REACH = 41
 export const MAX_MUSCLE_LEVEL = 8
+// Shiba sprite: idle pose height in player units (same units as PLAYER_FOOT_Y).
+export const SHIBA_IDLE_HEIGHT_UNITS = 136
+export const SHIBA_IDLE_HEIGHT_PX = 256 // source PNG height of the idle pose
+export const DODGE_POSE_SEC = 0.22
 
 export const OBSTACLE_SIZE = 52
 export const PROTEIN_SIZE = 42
