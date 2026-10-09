@@ -20,7 +20,6 @@ const chrome: GameChrome = {
   scoreTick: must('score-tick'),
   best: must('best'),
   combo: must('combo'),
-  muscleFill: must('muscle-fill'),
   overScore: must('over-score'),
   overRank: must('over-rank'),
   overHirari: must('over-hirari'),

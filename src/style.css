@@ -53,7 +53,7 @@ body {
   position: absolute;
   inset: 0 0 auto 0;
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   align-items: flex-start;
   padding: max(12px, env(safe-area-inset-top))
     calc(var(--corner-width) + max(12px, env(safe-area-inset-right)) + var(--corner-gap)) 0 16px;
@@ -61,7 +61,6 @@ body {
   z-index: 2;
 }
 
-.muscle,
 .scores {
   padding: 7px 10px;
   border: 3px solid var(--ink);
@@ -69,43 +68,6 @@ body {
   background: var(--paper);
   box-shadow: 0 3px 0 var(--ink);
   color: var(--ink);
-}
-
-.muscle {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  min-width: 42%;
-}
-
-.muscle-label {
-  font-family: var(--display);
-  font-size: 13px;
-  line-height: 1;
-  letter-spacing: 0.04em;
-  color: var(--ink);
-}
-
-.muscle-track {
-  height: 12px;
-  border: 2px solid var(--ink);
-  border-radius: 999px;
-  background: var(--cream-deep);
-  overflow: hidden;
-}
-
-#muscle-fill {
-  height: 100%;
-  width: 0%;
-  border-radius: 999px;
-  background: repeating-linear-gradient(
-      -45deg,
-      transparent 0 6px,
-      rgba(255, 255, 255, 0.22) 6px 10px
-    ),
-    var(--green);
-  transform-origin: left center;
-  transition: width 160ms ease-out;
 }
 
 .hud-scores {
@@ -436,12 +398,6 @@ button:focus-visible {
 }
 
 @media (max-width: 359px) {
-  .muscle {
-    flex: 1 1 auto;
-    min-width: 0;
-    margin-right: 6px;
-  }
-
   .scores {
     min-width: 6.5rem;
     padding: 6px 8px;
@@ -460,10 +416,6 @@ button:focus-visible {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  #muscle-fill {
-    transition: none;
-  }
-
   #score.is-bump,
   #score-tick.is-on {
     animation: none;
