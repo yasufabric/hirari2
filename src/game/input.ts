@@ -97,6 +97,8 @@ export function attachKeyboard(
       case 'Space':
       case 'Enter':
         if (e.target instanceof HTMLButtonElement) return
+        // Enter on a focused link (Xでシェア) follows the link instead of retrying.
+        if (e.code === 'Enter' && e.target instanceof HTMLAnchorElement) return
         e.preventDefault()
         onConfirm()
         return
