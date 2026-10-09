@@ -42,7 +42,6 @@ export type GameChrome = {
   scoreTick: HTMLElement
   best: HTMLElement
   combo: HTMLElement
-  muscleFill: HTMLElement
   overScore: HTMLElement
   overRank: HTMLElement
   overHirari: HTMLElement
@@ -768,7 +767,6 @@ export class Game {
     this.chrome.best.textContent = String(this.bestScore)
     this.chrome.combo.hidden = this.proteinCombo < 2
     this.chrome.combo.textContent = `プロテイン ×${this.proteinCombo}`
-    this.chrome.muscleFill.style.width = `${(this.player.muscleLevel / MAX_MUSCLE_LEVEL) * 100}%`
     const rank = muscleRankTitle(muscleRank(this.player.muscleLevel))
     this.chrome.overRank.textContent = rank
     const bestBit = this.newBest ? `いちばん 更新 ${this.bestScore}` : `いちばん ${this.bestScore}`
