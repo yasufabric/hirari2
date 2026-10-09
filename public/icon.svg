@@ -1,8 +1,18 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <rect width="512" height="512" rx="96" fill="#E8DCC8" />
-  <ellipse cx="256" cy="318" rx="168" ry="128" fill="#3B2416" />
-  <path d="M156 168 L228 240 L156 312 L84 240 Z" fill="#F5C518" stroke="#3B2416" stroke-width="14" stroke-linejoin="round" />
-  <rect x="292" y="132" width="112" height="156" rx="18" fill="#1F6F4A" stroke="#3B2416" stroke-width="14" />
-  <rect x="306" y="146" width="84" height="22" rx="4" fill="#F4EAD8" />
-  <rect x="310" y="198" width="76" height="24" rx="3" fill="#F5C518" />
+  <rect width="512" height="512" rx="112" fill="#FFF9E9"/>
+  <g stroke="#1C1A18" stroke-width="22" stroke-linejoin="round" stroke-linecap="round">
+    <path d="M104 236 L132 92 L232 168 Z" fill="#E88E26"/>
+    <path d="M408 236 L380 92 L280 168 Z" fill="#E88E26"/>
+    <path d="M256 150 C376 150 430 222 430 300 C430 384 352 432 256 432 C160 432 82 384 82 300 C82 222 136 150 256 150 Z" fill="#E88E26"/>
+  </g>
+  <path d="M138 140 L150 196 L196 170 Z" fill="#FCE6B0"/>
+  <path d="M374 140 L362 196 L316 170 Z" fill="#FCE6B0"/>
+  <path d="M100 318 C122 290 168 288 200 300 C224 310 240 314 256 314 C272 314 288 310 312 300 C344 288 390 290 412 318 C404 380 340 418 256 418 C172 418 108 380 100 318 Z" fill="#FFF3D6"/>
+  <path d="M96 196 C150 172 362 172 416 196 L424 236 C362 212 150 212 88 236 Z" fill="#2F8A3A" stroke="#1C1A18" stroke-width="14" stroke-linejoin="round"/>
+  <ellipse cx="190" cy="282" rx="22" ry="26" fill="#1C1A18"/>
+  <ellipse cx="322" cy="282" rx="22" ry="26" fill="#1C1A18"/>
+  <circle cx="198" cy="272" r="7" fill="#FFF9E9"/>
+  <circle cx="330" cy="272" r="7" fill="#FFF9E9"/>
+  <path d="M232 324 C232 314 280 314 280 324 C280 340 266 348 256 348 C246 348 232 340 232 324 Z" fill="#1C1A18"/>
+  <path d="M256 348 L256 364 M222 364 C236 384 256 376 256 364 C256 376 276 384 290 364" fill="none" stroke="#1C1A18" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>

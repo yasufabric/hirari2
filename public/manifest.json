@@ -3,14 +3,20 @@
   "short_name": "筋ひらり",
   "start_url": ".",
   "display": "standalone",
-  "background_color": "#E8DCC8",
-  "theme_color": "#3B2416",
+  "background_color": "#FFF9E9",
+  "theme_color": "#FFF9E9",
   "icons": [
     {
       "src": "icon.svg",
       "sizes": "any",
       "type": "image/svg+xml",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any"
     }
   ]
 }
