@@ -1,18 +1,14 @@
 import {
-  BASE_OBSTACLE_SPEED,
-  BASE_SPAWN_INTERVAL_MS,
   BEST_SCORE_STORAGE_KEY,
   LANE_COUNT,
   MAX_MUSCLE_LEVEL,
-  MIN_SPAWN_INTERVAL_MS,
   MAT_HEIGHT,
   MUTE_STORAGE_KEY,
   OBSTACLE_SIZE,
-  OBSTACLE_SPEED_GROWTH,
   PLAYER_RADIUS,
   PROTEIN_SPAWN_CHANCE,
-  SPAWN_INTERVAL_DECAY_PER_SEC,
 } from './config'
+import { maxBlockedLanes, obstacleSpeed, spawnIntervalMs } from './difficulty'
 import { canControlPlayer, canTogglePause, type GameStatus } from './GameState'
 import { matTopY, padObstruction, playerStandY, stageBox } from './layout'
 import { Obstacle } from './Obstacle'
@@ -258,7 +254,7 @@ export class Game {
     this.obstacles = []
     this.score = 0
     this.elapsed = 0
-    this.spawnTimer = BASE_SPAWN_INTERVAL_MS
+    this.spawnTimer = spawnIntervalMs(0)
     this.player.lane = Math.floor(LANE_COUNT / 2)
     this.player.displayX = this.laneXPositions[this.player.lane]
     this.player.muscleLevel = 0
@@ -305,16 +301,12 @@ export class Game {
     this.elapsed += dt
     this.score += survivalScore(dt, this.player.muscleLevel)
 
-    const speed = BASE_OBSTACLE_SPEED + this.elapsed * OBSTACLE_SPEED_GROWTH
+    const speed = obstacleSpeed(this.elapsed)
 
     this.spawnTimer -= dt * 1000
     if (this.spawnTimer <= 0) {
       this.spawnObstacle()
-      const interval = Math.max(
-        MIN_SPAWN_INTERVAL_MS,
-        BASE_SPAWN_INTERVAL_MS - this.elapsed * SPAWN_INTERVAL_DECAY_PER_SEC,
-      )
-      this.spawnTimer = interval
+      this.spawnTimer = spawnIntervalMs(this.elapsed)
     }
 
     for (const obstacle of this.obstacles) obstacle.update(dt, speed)
@@ -352,7 +344,8 @@ export class Game {
 
   private spawnObstacle(): void {
     const lanes = Array.from({ length: LANE_COUNT }, (_, i) => i)
-    const openCount = 1 + Math.floor(Math.random() * (LANE_COUNT - 1))
+    const blocked = 1 + Math.floor(Math.random() * maxBlockedLanes(this.elapsed))
+    const openCount = LANE_COUNT - blocked
     for (let i = lanes.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1))
       ;[lanes[i], lanes[j]] = [lanes[j], lanes[i]]

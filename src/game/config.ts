@@ -23,6 +23,11 @@ export const BASE_SPAWN_INTERVAL_MS = 900
 export const MIN_SPAWN_INTERVAL_MS = 380
 export const SPAWN_INTERVAL_DECAY_PER_SEC = 12
 
+// Gentle opening: first-time players get a few seconds to read the lanes.
+export const OPENING_WARMUP_SEC = 8
+export const OPENING_SPEED_SCALE = 0.6 // start at 60% speed, ease to full by the end of warmup
+export const OPENING_INTERVAL_SCALE = 1.5 // start with 1.5x spawn gaps
+
 export const SCORE_PER_SECOND = 6
 
 export const BEST_SCORE_STORAGE_KEY = 'hirari2.bestScore'
