@@ -1,0 +1,68 @@
+name: Deploy to itch.io
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: itch-deploy
+  cancel-in-progress: true
+
+env:
+  BUTLER_VERSION: 15.32.0
+  ITCH_TARGET: yasufabric/muscle-hirari:html5
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      BUTLER_API_KEY: ${{ secrets.BUTLER_API_KEY }}
+    steps:
+      - name: Check for BUTLER_API_KEY secret
+        id: secret
+        run: |
+          if [ -z "$BUTLER_API_KEY" ]; then
+            echo "::notice title=itch.io deploy skipped::BUTLER_API_KEY secret is not set. Add it in Settings > Secrets and variables > Actions to enable itch.io uploads."
+            echo "present=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Checkout
+        if: steps.secret.outputs.present == 'true'
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        if: steps.secret.outputs.present == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        if: steps.secret.outputs.present == 'true'
+        run: npm ci
+
+      - name: Build for itch.io (relative base)
+        if: steps.secret.outputs.present == 'true'
+        run: npm run build:itch
+
+      - name: Install butler
+        if: steps.secret.outputs.present == 'true'
+        run: |
+          mkdir -p "$RUNNER_TEMP/butler"
+          curl -fsSL -o "$RUNNER_TEMP/butler.zip" \
+            "https://broth.itch.zone/butler/linux-amd64/${BUTLER_VERSION}/archive/default"
+          unzip -q "$RUNNER_TEMP/butler.zip" -d "$RUNNER_TEMP/butler"
+          chmod +x "$RUNNER_TEMP/butler/butler"
+          echo "$RUNNER_TEMP/butler" >> "$GITHUB_PATH"
+          "$RUNNER_TEMP/butler/butler" -V
+
+      - name: Push to itch.io
+        if: steps.secret.outputs.present == 'true'
+        run: butler push dist-itch "$ITCH_TARGET" --userversion "${GITHUB_SHA::7}"

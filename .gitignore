@@ -1,4 +1,5 @@
 node_modules/
 dist/
+dist-itch/
 .DS_Store
 *.local
